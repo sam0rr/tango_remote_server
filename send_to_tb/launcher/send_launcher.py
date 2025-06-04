@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
-send_launcher.py — Orchestrator that ties a DataFetcher to an HttpClient.
-Splits big methods into several helpers (<30 lines each).
+send_launcher.py — Fine-grained launcher with rowid update per message.
+Orchestrates:
+  1) fetch_and_prepare() from DataFetcher
+  2) chunk payloads by max_per_sec
+  3) send each one via HttpClient.send_resilient()
+  4) update state_file (rowid) after *each message*
+  5) enforce 1s delay between batches
 """
 import time
 import logging
@@ -11,39 +16,36 @@ log = logging.getLogger("send_launcher")
 
 class SendToLauncher:
     """
-    Orchestrate:
-      1) fetch_and_prepare() from DataFetcher
-      2) chunk payloads by max_per_sec
-      3) send each chunk with HttpClient.send_resilient()
-      4) update state_file via fetcher.write_last_id()
-      5) enforce 1s delay between chunks
+    Launches the telemetry pipeline by combining a DataFetcher and HttpClient.
+    Payloads are sent in small batches with per-message state persistence
+    to maximize reliability in case of crash.
     """
 
     def __init__(self, fetcher, client, max_per_sec: int):
         """
         :param fetcher:     Instance of DataFetcher
         :param client:      Instance of HttpClient
-        :param max_per_sec: How many messages to send per second
+        :param max_per_sec: Max number of messages to send per second
         """
         self.fetcher = fetcher
         self.client = client
         self.max_per_sec = max_per_sec
 
-    def _fetch_payloads(self) -> tuple[list[dict], int]:
+    def _fetch_payloads(self) -> list[dict]:
         """
-        Call fetcher.fetch_and_prepare() → (payloads, last_seen_id).
+        Retrieve fresh telemetry payloads from the fetcher.
         """
-        return self.fetcher.fetch_and_prepare()
+        payloads, _ = self.fetcher.fetch_and_prepare()
+        return payloads
 
-    def _send_in_chunks(self, payloads: list[dict], last_seen_id: int) -> None:
+    def _send_in_chunks(self, payloads: list[dict]) -> None:
         """
-        Loop through payloads, batch by self.max_per_sec, send each batch,
-        update state after each batch, and enforce rate limit.
+        Loop through payloads, batch them by max_per_sec, send each message
+        individually, and write the rowid after every successful send.
         """
         total = len(payloads)
         log.info("Processing %d payload(s).", total)
         if total == 0:
-            log.info("No payloads to send.")
             return
 
         sent_count = 0
@@ -52,42 +54,46 @@ class SendToLauncher:
 
         for entry in payloads:
             batch.append(entry)
+
             if len(batch) >= self.max_per_sec:
-                sent_count += self._send_single_batch(batch)
+                sent_count += self._send_fine_grained_batch(batch)
                 window_start = self._enforce_rate_limit(window_start)
                 batch.clear()
 
         if batch:
-            sent_count += self._send_single_batch(batch)
-            self.fetcher.write_last_id(last_seen_id)
+            sent_count += self._send_fine_grained_batch(batch)
 
         log.info("Done. Sent %d/%d payload(s).", sent_count, total)
 
-    def _send_single_batch(self, batch: list[dict]) -> int:
+    def _send_fine_grained_batch(self, batch: list[dict]) -> int:
         """
-        Send `batch` via client.send_resilient().
-        Update last_id to the batch’s last rowid (extracted internally by DataFetcher).
-        Return number of successfully sent items.
+        Send each message individually and write rowid after each success.
+        Returns the number of successfully sent payloads.
         """
-        to_send = []
+        sent_total = 0
+
         for entry in batch:
-            to_send.append({
+            payload = {
                 "ts": entry["ts"],
                 "values": entry["values"]
-            })
+            }
 
-        sent = self.client.send_resilient(to_send)
+            try:
+                sent = self.client.send_resilient([payload])
+                if sent:
+                    rowid = entry.get("rowid")
+                    if rowid is not None:
+                        self.fetcher.write_last_id(rowid)
+                        log.debug("RowID %d sent and written to state file", rowid)
+                    sent_total += 1
+            except Exception as e:
+                log.warning("Failed to send single payload: %s", e)
 
-        if batch and "rowid" in batch[-1]:
-            last_rowid = batch[-1]["rowid"]
-            self.fetcher.write_last_id(last_rowid)
-
-        return sent
+        return sent_total
 
     def _enforce_rate_limit(self, window_start: float) -> float:
         """
-        If less than 1 second has passed since window_start, sleep the remaining time.
-        Return new window_start (now).
+        Sleep the remaining time to enforce a minimum 1s window per batch.
         """
         elapsed = time.monotonic() - window_start
         if elapsed < 1.0:
@@ -96,8 +102,7 @@ class SendToLauncher:
 
     def start(self):
         """
-        1) _fetch_payloads()
-        2) _send_in_chunks(...)
+        Entry point — fetch, chunk, send, persist rowid after each message.
         """
-        payloads, last_seen_id = self._fetch_payloads()
-        self._send_in_chunks(payloads, last_seen_id)
+        payloads = self._fetch_payloads()
+        self._send_in_chunks(payloads)
