@@ -13,15 +13,15 @@ log = logging.getLogger("sitrad_data_fetcher")
 
 class SitradDataFetcher(DataFetcher):
     """
-    Concrete DataFetcher for tc900log table in an SQLite database.
+    Concrete DataFetcher for the tc900log table in an SQLite database.
     Implements fetch_rows() + build_payload().
     """
 
     SQL_QUERY = """
         SELECT rowid, id,
-               ROUND(Temp1/10.0,1) AS t1,
-               ROUND(Temp2/10.0,1) AS t2,
-               ROUND(Temp3/10.0,1) AS t3,
+               ROUND(Temp1/10.0, 1) AS t1,
+               ROUND(Temp2/10.0, 1) AS t2,
+               ROUND(Temp3/10.0, 1) AS t3,
                defr, fans, refr, buzz, econ, fast,
                dig1, dig2, door, estagio,
                CAST((data - 25569)*86400*1000 AS INTEGER) AS ts_ms
@@ -32,15 +32,15 @@ class SitradDataFetcher(DataFetcher):
 
     def __init__(self, db_path: str, state_file: str):
         """
-        :param db_path:     Path to the SQLite database.
-        :param state_file:  Path to store last processed rowid.
+        :param db_path:     Path to the SQLite database file.
+        :param state_file:  Path to the file storing the last processed rowid.
         """
         super().__init__(state_file)
         self.db_path = db_path
 
     def fetch_rows(self, since_id: int) -> list[sqlite3.Row]:
         """
-        Connect to SQLite, run SQL_QUERY with since_id, and return list of sqlite3.Row.
+        Connect to SQLite, run SQL_QUERY with since_id, and return a list of sqlite3.Row.
         """
         if not os.path.isfile(self.db_path):
             log.error("Database not found: %s", self.db_path)
@@ -79,31 +79,21 @@ class SitradDataFetcher(DataFetcher):
 
     def build_payload(self, row: sqlite3.Row) -> dict | None:
         """
-        Transform one sqlite3.Row into {"ts":<ms>, "values":{…}}.
-        Return None if timestamp invalid.
+        Transform one sqlite3.Row into {"ts": <ms>, "values": {…}}.
         """
         ts = row["ts_ms"]
         if not self._is_valid_timestamp(ts):
             return None
 
         values = {
-            "InstrumentId": row["id"],
-            "RowId":        row["rowid"],
-            "Temp1":        self._clean_value(row["t1"]),
-            "Temp2":        self._clean_value(row["t2"]),
-            "Temp3":        self._clean_value(row["t3"]),
-            "defr":         row["defr"],
-            "fans":         row["fans"],
-            "refr":         row["refr"],
-            "buzz":         row["buzz"],
-            "econ":         row["econ"],
-            "fast":         row["fast"],
-            "dig1":         row["dig1"],
-            "dig2":         row["dig2"],
-            "door":         row["door"],
-            "stage":        row["estagio"],
+            "Temp1": self._clean_value(row["t1"]),
+            "Temp2": self._clean_value(row["t2"]),
+            "defr":  row["defr"],
+            "fans":  row["fans"],
+            "refr":  row["refr"],
+            "dig1":  row["dig1"],
+            "dig2":  row["dig2"],
         }
 
-        # Filter out None values so ThingsBoard only receives real numbers
         filtered = {k: v for k, v in values.items() if v is not None}
         return {"ts": ts, "values": filtered}
