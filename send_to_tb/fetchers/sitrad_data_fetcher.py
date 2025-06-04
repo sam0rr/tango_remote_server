@@ -79,7 +79,12 @@ class SitradDataFetcher(DataFetcher):
 
     def build_payload(self, row: sqlite3.Row) -> dict | None:
         """
-        Transform one sqlite3.Row into {"ts": <ms>, "values": {…}}.
+        Transform one sqlite3.Row into a dict:
+            {
+              "rowid": <rowid>,        
+              "ts": <timestamp_ms>,
+              "values": { … }       
+            }
         """
         ts = row["ts_ms"]
         if not self._is_valid_timestamp(ts):
@@ -96,4 +101,8 @@ class SitradDataFetcher(DataFetcher):
         }
 
         filtered = {k: v for k, v in values.items() if v is not None}
-        return {"ts": ts, "values": filtered}
+        return {
+            "rowid": row["rowid"],
+            "ts": ts,
+            "values": filtered
+        }
