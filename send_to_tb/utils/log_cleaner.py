@@ -19,6 +19,6 @@ def purge_old_logs(log_dir: str | Path, max_age_days: int = 7):
         if log_file.stat().st_mtime < cutoff:
             try:
                 log_file.unlink()
-                print(f"🧹 Deleted old log: {log_file.name}")
+                print(f"Deleted old log: {log_file.name}")
             except Exception as e:
-                print(f"⚠️ Could not delete {log_file.name}: {e}")
+                print(f"Could not delete {log_file.name}: {e}")
