@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Get current directory (e.g. /home/ecarbonn/scripts/send_to_tb)
-WORKDIR="$(pwd)"
+BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 UNIT_DIR="$HOME/.config/systemd/user"
+SCRIPT_PATH="$BASEDIR/send_to_tb/main.py"
 
-echo "🔧 Creating systemd timer for:"
-echo "    $WORKDIR/main.py"
+echo "🔧reating systemd timer for:"
+echo "    $SCRIPT_PATH"
 
 mkdir -p "$UNIT_DIR"
 
@@ -17,8 +17,8 @@ Description=Send telemetry to ThingsBoard
 
 [Service]
 Type=oneshot
-WorkingDirectory=$WORKDIR
-ExecStart=$WORKDIR/main.py
+WorkingDirectory=$BASEDIR/send_to_tb
+ExecStart=$SCRIPT_PATH
 Environment="PYTHONUNBUFFERED=1"
 EOF
 
