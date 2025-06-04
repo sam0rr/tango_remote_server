@@ -50,8 +50,8 @@ class SendToLauncher:
         batch: list[dict] = []
         window_start = time.monotonic()
 
-        for pl in payloads:
-            batch.append(pl)
+        for entry in payloads:
+            batch.append(entry)
             if len(batch) >= self.max_per_sec:
                 sent_count += self._send_single_batch(batch)
                 window_start = self._enforce_rate_limit(window_start)
@@ -66,13 +66,22 @@ class SendToLauncher:
     def _send_single_batch(self, batch: list[dict]) -> int:
         """
         Send `batch` via client.send_resilient().
-        Update last_id to the batch’s last RowId (extracted internally by DataFetcher).
+        Update last_id to the batch’s last rowid (extracted internally by DataFetcher).
         Return number of successfully sent items.
         """
-        sent = self.client.send_resilient(batch)
-        if batch and "values" in batch[-1] and "RowId" in batch[-1]["values"]:
-            last_rowid = batch[-1]["values"]["RowId"]
+        to_send = []
+        for entry in batch:
+            to_send.append({
+                "ts": entry["ts"],
+                "values": entry["values"]
+            })
+
+        sent = self.client.send_resilient(to_send)
+
+        if batch and "rowid" in batch[-1]:
+            last_rowid = batch[-1]["rowid"]
             self.fetcher.write_last_id(last_rowid)
+
         return sent
 
     def _enforce_rate_limit(self, window_start: float) -> float:
