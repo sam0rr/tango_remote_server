@@ -1,11 +1,17 @@
 # README
 
-Ce projet contient :
+## Description du projet
+
+Ce projet permet de collecter automatiquement les données d'un dispositif industriel (ex: TC-900 de Full Gauge), de les formater, et de les envoyer vers ThingsBoard Cloud à l'aide d'un client HTTP résilient. Il est conçu pour être fiable, modulaire, facilement maintenable et extensible.
+
+---
+
+## Arborescence du projet
 
 ```
 scripts/
-├── venv/                  ← Environnement virtuel Python
-├── send_to_tb/            ← Package Python “send_to_tb” (votre code refactoré)
+├── venv/                   ← Environnement virtuel Python
+├── send_to_tb/             ← Package Python “send_to_tb” (code principal)
 │   ├── __init__.py
 │   ├── .env
 │   ├── main.py
@@ -22,57 +28,36 @@ scripts/
 │   │   └── send_launcher.py
 │   └── utils/
 │       ├── __init__.py  
-│       └── log_cleaner.py      ← purge logic
-└── autres_scripts…         ← (vos autres scripts, par exemple `setup_sitrad.sh`)
+│       └── log_cleaner.py      ← purge automatique des logs
+├── setup_bash/             ← Scripts bash opérationnels
+│   ├── setup_timer.sh          ← Installe le timer systemd
+│   ├── kill_timer.sh           ← Supprime le timer
+│   └── setup_sitrad.sh         ← Lance Wine + Sitrad PRO
 ```
-
-Le dépôt Git se trouve dans `scripts/`.
-
-Avant de lancer quoi que ce soit, vous devez :
-
-* Créer et activer un environnement virtuel Python à la racine de `scripts/`
-* Installer les dépendances
-* Rendre vos scripts exécutables
 
 ---
 
-## 1. Créer et activer l’environnement virtuel
+## Prérequis
 
-Placez-vous à la racine du dossier `scripts/` :
+* Python 3.7+
+* `requests` (lib HTTP)
+* Linux ou Raspberry Pi avec `systemd --user`
+* Accès à ThingsBoard (token + device)
+* Base de données SQLite (générée par Sitrad)
+
+---
+
+## Installation pas à pas
+
+### 1. Créer et activer l'environnement virtuel
 
 ```bash
 cd /chemin/vers/scripts
-```
-
-Créez un venv (si ce n’est pas déjà fait) :
-
-```bash
 python3 -m venv venv
-```
-
-Activez le venv :
-
-### Sur Linux / macOS
-
-```bash
 source venv/bin/activate
 ```
 
-### Sur Windows (PowerShell)
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-### Sur Windows (cmd.exe)
-
-```cmd
-.\venv\Scripts\activate.bat
-```
-
----
-
-## 2. Installer les dépendances Python
+### 2. Installer les dépendances Python
 
 Une fois le venv activé :
 
@@ -81,33 +66,31 @@ pip install --upgrade pip
 pip install requests
 ```
 
-Si vous ajoutez d’autres bibliothèques, créez un `requirements.txt` :
+Si vous ajoutez d'autres bibliothèques, créez un fichier `requirements.txt` :
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
-## 3. Préparer le fichier `.env`
+### 3. Préparer le fichier `.env`
 
 Dans `scripts/send_to_tb/.env` :
 
 ```ini
 ###############################################################################
-# ▶︎ Credentials
+# ▶️ Credentials
 ###############################################################################
 DEVICE_TOKEN=LP7c1aIMyA713GNB0HoJ
 
 ###############################################################################
-# ▶︎ Paths
+# ▶️ Paths
 ###############################################################################
 DB_PATH=~/.wine/drive_c/ProgramData/Full Gauge/Sitrad/data.db
 STATE_FILE=.last_rowid
 LOG_FILE=sitrad_push.log
 
 ###############################################################################
-# ▶︎ Behaviour
+# ▶️ Behaviour
 ###############################################################################
 MAX_MSGS_PER_SEC=10          # limite douce : 10 messages par seconde
 MAX_RETRY=5                  # tentatives max (split & back-off compris)
@@ -117,29 +100,21 @@ MIN_VALID_TS_MS=946684800000 # 2000-01-01 UTC en ms
 PURGE_LOG_DAYS=7             # auto-delete logs older than X days
 ```
 
-> `DB_PATH` : utilisez l’expansion `~` ou un chemin absolu complet.
-> Les fichiers `STATE_FILE` et `LOG_FILE` seront créés à l’exécution.
+> `DB_PATH` : utilisez l'expansion `~` ou un chemin absolu complet.
+> Les fichiers `STATE_FILE` et `LOG_FILE` seront créés à l'exécution.
 
----
-
-## 4. Rendre les scripts exécutables
+### 4. Rendre les scripts exécutables
 
 Depuis la racine `scripts/` :
 
 ```bash
 chmod +x send_to_tb/main.py
-chmod +x autres_scripts/*.sh
+chmod +x setup_bash/setup_timer.sh
+chmod +x setup_bash/kill_timer.sh
+chmod +x setup_bash/setup_sitrad.sh
 ```
 
-Exemple :
-
-```bash
-chmod +x setup_sitrad.sh
-```
-
----
-
-## 5. Lancer le programme `send_to_tb`
+### 5. Lancer le programme `send_to_tb`
 
 Activez le venv :
 
@@ -169,72 +144,132 @@ python -m send_to_tb.main
 
 ---
 
-## 6. Fonctionnement interne
+##Exécution automatique toutes les 30 secondes
 
-* `main.py` :
+### Installer le timer :
 
-  * Charge `.env`
-  * Crée `SitradDataFetcher`
-  * Crée `ThingsBoardClient`
-  * Lance `SendToLauncher`
+```bash
+./setup_bash/setup_timer.sh
+```
 
-* `SitradDataFetcher`
+Cela crée :
 
-  * `read_last_id()`
-  * `fetch_rows(last_id)`
-  * `build_payload(row)`
-  * `fetch_and_prepare()`
+* `~/.config/systemd/user/send_to_tb.service`
+* `~/.config/systemd/user/send_to_tb.timer`
 
-* `ThingsBoardClient`
+Et active le timer.
 
-  * Calcule l'URL
-  * `post_json_with_retry()`
-  * `send_resilient(batch)`
+### Vérifier le statut :
 
-* `SendToLauncher`
+```bash
+systemctl --user list-timers
+journalctl --user -u send_to_tb.service -n 50
+```
 
-  * `start()`
-  * Coupe les payloads en lots selon `MAX_MSGS_PER_SEC`
-  * Appelle `client.send_resilient(...)`
-  * Écrit le `rowid` courant
+### Supprimer le timer :
+
+```bash
+./setup_bash/kill_timer.sh
+```
 
 ---
 
-## 7. Extensions possibles
+## Lancer Sitrad PRO (via Wine)
 
-* Nouveau `DataFetcher` (MySQL, API, CSV...) → hériter de `DataFetcher`
-* Nouveau `HttpClient` (Kafka, API IoT...) → hériter de `HttpClient`
+```bash
+./setup_bash/setup_sitrad.sh
+```
 
-Le coeur `SendToLauncher` reste indépendant de la source ou destination.
+---
+
+## Fonctionnement interne
+
+### `main.py`
+
+* Charge `.env`
+* Crée `SitradDataFetcher`
+* Crée `ThingsBoardClient`
+* Lance `SendToLauncher`
+
+### `SitradDataFetcher`
+
+* `read_last_id()`
+* `fetch_rows(last_id)`
+* `build_payload(row)`
+* `fetch_and_prepare()`
+
+### `ThingsBoardClient`
+
+* Calcule l'URL d’envoi
+* `post_json_with_retry()`
+* `send_resilient(batch)`
+
+### `SendToLauncher`
+
+* `start()`
+* Coupe les payloads en lots selon `MAX_MSGS_PER_SEC`
+* Appelle `client.send_resilient(...)`
+* Écrit le `rowid` courant
 
 ---
 
 ## FAQ
 
+**Q : Je veux voir le `rowid` actuel ?**
+
+```bash
+cat send_to_tb/.last_rowid
+```
+
+**Q : Le script tourne-t-il ?**
+
+```bash
+systemctl --user list-timers
+```
+
+**Q : Comment voir les journaux d'envoi ?**
+
+```bash
+journalctl --user -u send_to_tb.service -n 50
+```
+
 **Q : Où dois-je exécuter `chmod +x` ?**
-R : Sur chaque script que vous voulez lancer directement :
 
 ```bash
 chmod +x send_to_tb/main.py
-chmod +x setup_sitrad.sh
+chmod +x setup_bash/setup_sitrad.sh
 ```
 
 **Q : Comment tester à vide ?**
-R : Mettez `MAX_MSGS_PER_SEC=0` dans le `.env` ou commentez `send_resilient(...)`
+
+```ini
+MAX_MSGS_PER_SEC=0
+```
+
+Ou commentez `send_resilient(...)` dans le code.
 
 **Q : Pourquoi `~` dans `DB_PATH` ?**
-R : Il est automatiquement converti avec `os.path.expanduser()`.
+R : Il est automatiquement converti par `os.path.expanduser()`.
 
 **Q : Dois-je versionner `venv/` ?**
-R : Non. Ajoutez-le dans `.gitignore`. Utilisez `requirements.txt`.
+R : Non. Ajoutez-le à `.gitignore`.
+
+---
+
+## Possibilités d'extension
+
+* Nouveau `DataFetcher` (MySQL, API, CSV...) → hériter de `DataFetcher`
+* Nouveau `HttpClient` (Kafka, API IoT...) → hériter de `HttpClient`
+* Le coeur `SendToLauncher` reste indépendant de la source ou destination
 
 ---
 
 Avec ce README, vous pouvez :
 
-* Initialiser un venv
+* Initialiser un environnement virtuel
 * Installer les dépendances
 * Rendre les scripts exécutables
-* Lancer `send_to_tb`
+* Lancer manuellement ou automatiquement `send_to_tb`
+* Superviser les émissions vers ThingsBoard
 
-Adaptez les chemins selon votre configuration.
+> Adaptez les chemins selon votre configuration.
