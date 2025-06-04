@@ -13,7 +13,7 @@ mkdir -p "$UNIT_DIR"
 # SERVICE
 cat > "$UNIT_DIR/send_to_tb.service" <<EOF
 [Unit]
-Description=Send TC-900 telemetry to ThingsBoard
+Description=Send telemetry to ThingsBoard
 
 [Service]
 Type=oneshot
