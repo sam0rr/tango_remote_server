@@ -17,9 +17,12 @@ scripts/
 │   │   ├── __init__.py
 │   │   ├── data_fetcher.py
 │   │   └── sitrad_data_fetcher.py
-│   └── launcher/
-│       ├── __init__.py
-│       └── send_launcher.py
+│   ├── launcher/
+│   │   ├── __init__.py
+│   │   └── send_launcher.py
+│   └── utils/
+│       ├── __init__.py  
+│       └── log_cleaner.py      ← purge logic
 └── autres_scripts…         ← (vos autres scripts, par exemple `setup_sitrad.sh`)
 ```
 
@@ -111,6 +114,7 @@ MAX_RETRY=5                  # tentatives max (split & back-off compris)
 INITIAL_DELAY_MS=200         # back-off initial (millisecondes)
 LOG_LEVEL=INFO               # DEBUG | INFO | WARNING | ERROR
 MIN_VALID_TS_MS=946684800000 # 2000-01-01 UTC en ms
+PURGE_LOG_DAYS=7             # auto-delete logs older than X days
 ```
 
 > `DB_PATH` : utilisez l’expansion `~` ou un chemin absolu complet.

@@ -174,4 +174,10 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
+# Storage output
 send_to_tb/.last_rowid
+
+# Logging output
+logs/
+*.log
+
