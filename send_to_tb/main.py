@@ -15,6 +15,7 @@ sys.path.insert(0, pkg_dir)
 from clients.thingsboard_client import ThingsBoardClient
 from fetchers.sitrad_data_fetcher import SitradDataFetcher
 from launcher.send_launcher import SendToLauncher
+from utils.log_cleaner import purge_old_logs
 
 
 def load_dotenv(dotenv_path: str):
@@ -34,7 +35,7 @@ def load_dotenv(dotenv_path: str):
 
 
 def setup_logging() -> logging.Logger:
-    """Configure logging to console and a log file in the logs/ folder."""
+    """Configure logging to console and to a log file in logs/ directory."""
     log_level = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
     log_file_name = os.getenv("LOG_FILE", "sitrad_push.log")
 
@@ -42,22 +43,20 @@ def setup_logging() -> logging.Logger:
     logs_dir.mkdir(parents=True, exist_ok=True)
     log_file_path = logs_dir / log_file_name
 
-    handlers = [
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(log_file_path, mode="a")
-    ]
-
     logging.basicConfig(
         level=log_level,
         format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=handlers
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            logging.FileHandler(log_file_path, mode="a")
+        ]
     )
 
     return logging.getLogger("send_to_thingsboard")
 
 
 def get_env_config() -> tuple[str, str, int]:
-    """Extract required config values from the environment."""
+    """Extract core config values from the environment."""
     raw_db = os.getenv("DB_PATH")
     if not raw_db:
         raise ValueError("✖️  DB_PATH is missing in environment. Exiting.")
@@ -70,7 +69,7 @@ def get_env_config() -> tuple[str, str, int]:
 
 
 def build_launcher(db_path: str, state_file: str, max_per_sec: int) -> SendToLauncher:
-    """Create and return a configured SendToLauncher."""
+    """Create the full launcher instance with configured fetcher and client."""
     fetcher = SitradDataFetcher(db_path=db_path, state_file=state_file)
     client = ThingsBoardClient()
     return SendToLauncher(fetcher, client, max_per_sec=max_per_sec)
@@ -80,6 +79,11 @@ def main():
     """Entrypoint for launching the data pipeline."""
     dotenv_file = os.path.join(pkg_dir, ".env")
     load_dotenv(dotenv_file)
+
+    logs_path = Path(pkg_dir) / "logs"
+    purge_days = int(os.getenv("PURGE_LOG_DAYS", "7"))
+    purge_old_logs(logs_path, max_age_days=purge_days)
+
     log = setup_logging()
 
     try:
