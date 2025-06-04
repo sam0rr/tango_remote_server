@@ -31,7 +31,7 @@ class HttpClient:
                 timeout=10
             )
         except Exception as exc:
-            log.warning("⚠️ Network exception: %s", exc)
+            log.warning("Network exception: %s", exc)
             return None
 
     def _should_retry(self, status_code: int) -> bool:
@@ -58,7 +58,7 @@ class HttpClient:
     def _log_and_drop(self, status_code: int, response: requests.Response) -> bool:
         """Log specific error and stop retrying."""
         if status_code == 401:
-            log.error("❌ Unauthorized (401): check DEVICE_TOKEN or permissions.")
+            log.error("Unauthorized (401): check DEVICE_TOKEN or permissions.")
         else:
             log.error("HTTP %d error: %s", status_code, response.text.strip())
         return False
@@ -87,7 +87,7 @@ class HttpClient:
 
             return self._log_and_drop(code, response)
 
-        log.error("❌ Exhausted retries for payload. Dropping.")
+        log.error("Exhausted retries for payload. Dropping.")
         return False
 
     def _split_batch(self, batch: list[dict]) -> tuple[list[dict], list[dict]]:
@@ -98,7 +98,7 @@ class HttpClient:
     def _handle_failed_single(self, payload: dict) -> int:
         """Log dropped payload with RowId and return 0."""
         row_id = payload.get("values", {}).get("RowId", "?")
-        log.error("❌ Dropping RowId=%s", row_id)
+        log.error("Dropping RowId=%s", row_id)
         return 0
 
     def send_resilient(self, batch: list[dict]) -> int:
@@ -117,7 +117,7 @@ class HttpClient:
             return self._handle_failed_single(batch[0])
 
         if len(batch) <= 1:
-            log.error("❌ Cannot split batch further. Dropping.")
+            log.error("Cannot split batch further. Dropping.")
             return 0
 
         left, right = self._split_batch(batch)

@@ -41,7 +41,7 @@ class SendToLauncher:
         update state after each batch, and enforce rate limit.
         """
         total = len(payloads)
-        log.info("▶︎ Processing %d payload(s).", total)
+        log.info("Processing %d payload(s).", total)
         if total == 0:
             log.info("No payloads to send.")
             return
@@ -61,17 +61,18 @@ class SendToLauncher:
             sent_count += self._send_single_batch(batch)
             self.fetcher.write_last_id(last_seen_id)
 
-        log.info("✅ Done. Sent %d/%d payload(s).", sent_count, total)
+        log.info("Done. Sent %d/%d payload(s).", sent_count, total)
 
     def _send_single_batch(self, batch: list[dict]) -> int:
         """
         Send `batch` via client.send_resilient().
-        Update last_id to the batch’s last RowId.
+        Update last_id to the batch’s last RowId (extracted internally by DataFetcher).
         Return number of successfully sent items.
         """
         sent = self.client.send_resilient(batch)
-        last_rowid = batch[-1]["values"].get("RowId")
-        self.fetcher.write_last_id(last_rowid)
+        if batch and "values" in batch[-1] and "RowId" in batch[-1]["values"]:
+            last_rowid = batch[-1]["values"]["RowId"]
+            self.fetcher.write_last_id(last_rowid)
         return sent
 
     def _enforce_rate_limit(self, window_start: float) -> float:

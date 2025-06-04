@@ -22,7 +22,7 @@ def load_dotenv(dotenv_path: str):
     """Load environment variables from .env file if present."""
     path = Path(dotenv_path)
     if not path.is_file():
-        print(f"⚠️  No .env file found at {dotenv_path}. Skipping load.")
+        print(f"No .env file found at {dotenv_path}. Skipping load.")
         return
 
     for line in path.read_text().splitlines():
@@ -59,7 +59,7 @@ def get_env_config() -> tuple[str, str, int]:
     """Extract core config values from the environment."""
     raw_db = os.getenv("DB_PATH")
     if not raw_db:
-        raise ValueError("✖️  DB_PATH is missing in environment. Exiting.")
+        raise ValueError("DB_PATH is missing in environment. Exiting.")
 
     db_path = os.path.expanduser(raw_db)
     state_file = os.getenv("STATE_FILE", ".last_rowid")
@@ -90,10 +90,10 @@ def main():
         db_path, state_file, max_per_sec = get_env_config()
         launcher = build_launcher(db_path, state_file, max_per_sec)
 
-        log.info("▶︎ Starting send_to_thingsboard...")
+        log.info("Starting send_to_thingsboard...")
         launcher.start()
     except Exception as e:
-        log.exception("🔥 An error occurred during execution:")
+        log.exception("An error occurred during execution:")
         sys.exit(1)
 
 
