@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-trap 'echo "❌  Error line $LINENO: $BASH_COMMAND" >&2' ERR
+trap 'echo "Error line $LINENO: $BASH_COMMAND" >&2' ERR
 
 ###############################################################################
 #  setup_sitrad.sh — Smart launcher for Sitrad 4.13 on Raspberry Pi
@@ -14,7 +14,7 @@ trap 'echo "❌  Error line $LINENO: $BASH_COMMAND" >&2' ERR
 #     --unblock               remove COM2-COM20 directories and exit
 ###############################################################################
 
-[[ $EUID -eq 0 ]] && { echo "❌  Run as normal user, not root."; exit 1; }
+[[ $EUID -eq 0 ]] && { echo "Run as normal user, not root."; exit 1; }
 
 LOG="$HOME/sitrad_setup.log"
 EXE="$HOME/.wine/drive_c/Program Files (x86)/Full Gauge/Sitrad/SitradLocal.exe"
@@ -40,15 +40,15 @@ mkdir -p "$DOS"
 
 # ── unblock mode only ─────────────────────────────────────────────────────────
 if $UNBLOCK; then
-  echo "🧹  Removing COM2-COM20 blockers…"
+  echo "Removing COM2-COM20 blockers…"
   find "$DOS" -maxdepth 1 \( -type d -name 'com[2-9]' -o -name 'com1[0-9]' \) \
         -print0 | xargs -0 -r rm -rf
-  echo "✅  All blockers removed. Exit."
+  echo "All blockers removed. Exit."
   exit 0
 fi
 
 # ── detect FTDI adapter ───────────────────────────────────────────────────────
-echo "🔍 Detecting FTDI adapter:"
+echo "Detecting FTDI adapter:"
 FTDI="$DEVICE_OVERRIDE"
 if [[ -z $FTDI ]]; then
   for d in /dev/ttyUSB*; do
@@ -60,30 +60,30 @@ if [[ -z $FTDI ]]; then
   done
 fi
 [[ -z $FTDI ]] && { echo "❌  No FTDI adapter found"; exit 1; }
-echo -e "\n✅  Using $FTDI for COM1\n"
+echo -e "\nUsing $FTDI for COM1\n"
 
 # ── clean up old symlinks ─────────────────────────────────────────────────────
 find "$DOS" -maxdepth 1 -type l -name 'com*' -exec rm -f {} +
 
 # ── block COM2-COM20 ──────────────────────────────────────────────────────────
-echo "🔒 Reserving COM2-COM20…"
+echo "Reserving COM2-COM20…"
 for n in {2..20}; do
   mkdir -p "$DOS/com$n" && chmod 000 "$DOS/com$n"
 done
 
 # ── map COM1 ─────────────────────────────────────────────────────────────────
-echo -e "\n🔗 Mapping COM1 → $FTDI"
+echo -e "\nMapping COM1 → $FTDI"
 ln -sf "$FTDI" "$DOS/com1"
 
 # ── current state ─────────────────────────────────────────────────────────────
-echo -e "\n📋 Current Wine COM list:"
+echo -e "\nCurrent Wine COM list:"
 for f in "$DOS"/com*; do ls -ld "$f"; done | sed 's/^/   /'
 
 # ── add bash alias ────────────────────────────────────────────────────────────
 grep -Fqx "$ALIAS_CMD" "$HOME/.bashrc" 2>/dev/null || echo "$ALIAS_CMD" >> "$HOME/.bashrc"
 
 # ── launch Sitrad ─────────────────────────────────────────────────────────────
-echo -e "\n🚀  Launching Sitrad 4.13…\n"
+echo -e "\nLaunching Sitrad 4.13…\n"
 wine "$EXE"
 
-echo -e "\n✅  Sitrad exited. All done."
+echo -e "\nSitrad exited. All done."
