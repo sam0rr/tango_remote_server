@@ -18,7 +18,7 @@ from launcher.send_launcher import SendToLauncher
 
 
 def load_dotenv(dotenv_path: str):
-    """Simple .env loader."""
+    """Load environment variables from .env file if present."""
     path = Path(dotenv_path)
     if not path.is_file():
         print(f"⚠️  No .env file found at {dotenv_path}. Skipping load.")
@@ -34,12 +34,25 @@ def load_dotenv(dotenv_path: str):
 
 
 def setup_logging() -> logging.Logger:
-    """Configure logging from LOG_LEVEL."""
+    """Configure logging to console and a log file in the logs/ folder."""
     log_level = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
+    log_file_name = os.getenv("LOG_FILE", "sitrad_push.log")
+
+    logs_dir = Path(pkg_dir) / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    log_file_path = logs_dir / log_file_name
+
+    handlers = [
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(log_file_path, mode="a")
+    ]
+
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)s [%(levelname)s] %(message)s"
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=handlers
     )
+
     return logging.getLogger("send_to_thingsboard")
 
 
