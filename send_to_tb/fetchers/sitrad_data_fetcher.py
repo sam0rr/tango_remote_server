@@ -24,7 +24,7 @@ class SitradDataFetcher(DataFetcher):
                ROUND(Temp3/10.0, 1) AS t3,
                defr, fans, refr, buzz, econ, fast,
                dig1, dig2, door, estagio,
-               CAST((data - 25569)*86400*1000 AS INTEGER) AS ts_ms
+               CAST(((data - 25569)*86400 - 14400)*1000 AS INTEGER) AS ts_ms
           FROM tc900log
          WHERE rowid > ?
          ORDER BY rowid
