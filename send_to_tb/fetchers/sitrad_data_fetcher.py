@@ -27,11 +27,11 @@ class SitradDataFetcher(DataFetcher):
                ROUND(Temp2/10.0, 1) AS t2,
                defr, fans, refr,
                dig1, dig2,
-               CAST(((data - 25569)*86400 - 14400)*1000 AS INTEGER) AS ts_ms
+               CAST(((data - 25569)*86400 - 120)*1000 AS INTEGER) AS ts_ms
           FROM tc900log
          ORDER BY rowid
     """
-
+    
     def __init__(self, db_path: str):
         """
         :param db_path: Path to the SQLite database file (tc900log.sqlite).
