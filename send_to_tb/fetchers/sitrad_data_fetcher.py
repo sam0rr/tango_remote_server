@@ -27,7 +27,7 @@ class SitradDataFetcher(DataFetcher):
                ROUND(Temp2/10.0, 1) AS t2,
                defr, fans, refr,
                dig1, dig2,
-               CAST(((data - 25569)*86400 - 14400)*1000 AS INTEGER) AS ts_ms
+               CAST(((data - 25569)*86400)*1000 AS INTEGER) AS ts_ms
           FROM tc900log
          ORDER BY rowid
     """
@@ -51,7 +51,6 @@ class SitradDataFetcher(DataFetcher):
         try:
             conn = sqlite3.connect(self.db_path, timeout=30)
             conn.row_factory = sqlite3.Row
-            # Enable WAL mode to reduce write conflicts with Sitrad
             conn.execute("PRAGMA journal_mode=WAL;")
             conn.execute("PRAGMA synchronous=NORMAL;")
             cursor = conn.cursor()
