@@ -65,12 +65,7 @@ With the virtual environment activated:
 ```bash
 pip install --upgrade pip
 pip install requests
-```
-
-If you add more libraries, list them in requirements.txt:
-
-```bash
-pip install -r requirements.txt
+pip install python-dotenv
 ```
 
 ### 3. Prepare the .env File
@@ -79,25 +74,34 @@ In `scripts/send_to_tb/.env`:
 
 ```ini
 ###############################################################################
-# Credentials
+# ▶︎ Credentials
 ###############################################################################
-DEVICE_TOKEN=LP7c1aIMyA713GNB0HoJ
+# ThingsBoard device token
+DEVICE_TOKEN=UuGa6uD0YW31ElEjxmEo
 
 ###############################################################################
-# Paths
+# ▶︎ Paths
 ###############################################################################
+# Chemin vers la base de données SQLite (via Wine)
 DB_PATH=~/.wine/drive_c/ProgramData/Full Gauge/Sitrad/data.db
+# Nom du fichier de logs (sera créé sous logs/)
 LOG_FILE=sitrad_push.log
 
 ###############################################################################
-# Behaviour
+# ▶︎ Behaviour
 ###############################################################################
-MAX_MSGS_PER_SEC=10          # soft limit: 10 messages per second
-MAX_RETRY=5                  # max retry attempts (with back-off)
-INITIAL_DELAY_MS=200         # initial back-off delay (milliseconds)
-LOG_LEVEL=INFO               # DEBUG | INFO | WARNING | ERROR
-MIN_VALID_TS_MS=946684800000 # 2000-01-01 UTC in ms
-PURGE_LOG_DAYS=2             # auto-delete log files older than X days
+# Limite douce : 10 messages par seconde
+MAX_MSGS_PER_SEC=10
+# Tentatives max (split & back-off compris)
+MAX_RETRY=5
+# Back-off initial (en millisecondes)
+INITIAL_DELAY_MS=200
+# DEBUG | INFO | WARNING | ERROR
+LOG_LEVEL=DEBUG
+# Timestamp minimal valide (2000-01-01 UTC en millisecondes)
+MIN_VALID_TS_MS=946684800000
+# Auto-delete logs older than X days
+PURGE_LOG_DAYS=2
 ```
 
 Notes:

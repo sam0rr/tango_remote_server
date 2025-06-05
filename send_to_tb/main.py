@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-main.py — Entrypoint: loads .env, configures logging, then purges old logs
-and calls SendToLauncher.start().
+main.py — Entrypoint: load .env (with python-dotenv), configure logging, then purge old logs.
 """
 
 import os
@@ -9,79 +8,71 @@ import sys
 import logging
 from pathlib import Path
 
-pkg_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, pkg_dir)
-
+from dotenv import load_dotenv
 from clients.thingsboard_client import ThingsBoardClient
 from fetchers.sitrad_data_fetcher import SitradDataFetcher
 from launcher.send_launcher import SendToLauncher
 from utils.log_cleaner import purge_old_logs
 
-def load_dotenv(dotenv_path: str):
-    """Load environment variables from .env file if present."""
-    path = Path(dotenv_path)
-    if not path.is_file():
-        print(f"No .env file found at {dotenv_path}. Skipping load.")
-        return
-
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, val = line.split("=", 1)
-        val = val.split("#", 1)[0].strip()
-        os.environ.setdefault(key, val)
+pkg_dir = Path(__file__).resolve().parent
+dotenv_path = pkg_dir / ".env"
+logs_path = pkg_dir / "logs"
+sys.path.insert(0, str(pkg_dir))
 
 def setup_logging() -> logging.Logger:
-    """Configure logging to console and to a log file in logs/ directory."""
-    log_level = getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
-    log_file_name = os.getenv("LOG_FILE", "sitrad_push.log")
+    """
+    Configure logging to both console and logs/<LOG_FILE>.
+    LOG_LEVEL is read from environment variables.
+    """
+    level_name = os.getenv("LOG_LEVEL", "INFO").upper()
+    level = getattr(logging, level_name, logging.INFO)
+    log_filename = os.getenv("LOG_FILE", "sitrad_push.log")
 
-    logs_dir = Path(pkg_dir) / "logs"
+    logs_dir = pkg_dir / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
-    log_file_path = logs_dir / log_file_name
+    log_path = logs_dir / log_filename
 
     logging.basicConfig(
-        level=log_level,
+        level=level,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
             logging.StreamHandler(sys.stdout),
-            logging.FileHandler(log_file_path, mode="a")
+            logging.FileHandler(log_path, mode="a")
         ]
     )
-
     return logging.getLogger("send_to_thingsboard")
 
 def get_env_config() -> tuple[str, int]:
     """
-    Extract core config values from the environment:
+    Read essential configuration from environment:
       - DB_PATH         : path to the SQLite database
-      - MAX_MSGS_PER_SEC: number of messages per second
+      - MAX_MSGS_PER_SEC: allowed messages per second
     """
     raw_db = os.getenv("DB_PATH")
     if not raw_db:
-        raise ValueError("DB_PATH is missing in environment. Exiting.")
-
+        raise ValueError("DB_PATH is missing from environment. Exiting.")
     db_path = os.path.expanduser(raw_db)
     max_per_sec = int(os.getenv("MAX_MSGS_PER_SEC", "10"))
-
     return db_path, max_per_sec
 
 def build_launcher(db_path: str, max_per_sec: int) -> SendToLauncher:
-    """Create the full launcher instance with configured fetcher and client."""
+    """
+    Instantiate SendToLauncher with configured fetcher and client.
+    """
     fetcher = SitradDataFetcher(db_path=db_path)
     client = ThingsBoardClient()
     return SendToLauncher(fetcher, client, max_per_sec=max_per_sec)
 
 def main():
-    """Entrypoint for launching the data pipeline."""
-    dotenv_file = os.path.join(pkg_dir, ".env")
-    load_dotenv(dotenv_file)
-
+    """
+    Entrypoint: load .env, print debug info, configure logger, purge old logs,
+    then start the data-push loop to ThingsBoard.
+    """
+    load_dotenv(dotenv_path)
     log = setup_logging()
 
-    logs_path = Path(pkg_dir) / "logs"
-    purge_days = int(os.getenv("PURGE_LOG_DAYS", "2"))
+    purge_raw = os.getenv("PURGE_LOG_DAYS", "2")
+    purge_days = int(purge_raw)
     purge_old_logs(logs_path, max_age_days=purge_days)
 
     try:
@@ -90,7 +81,7 @@ def main():
 
         log.info("Starting send_to_thingsboard...")
         launcher.start()
-    except Exception as e:
+    except Exception:
         log.exception("An error occurred during execution:")
         sys.exit(1)
 
