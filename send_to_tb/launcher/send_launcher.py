@@ -100,7 +100,6 @@ class SendToLauncher:
 
         if rowids_to_delete:
             delete_rows(self.fetcher.db_path, TELEMETRY_TABLE, rowids_to_delete)
-            log.debug("Deleted rowids %s from %s", rowids_to_delete, TELEMETRY_TABLE)
 
         return sent_total
 
@@ -124,4 +123,3 @@ class SendToLauncher:
         self._send_in_chunks(payloads)
 
         delete_all_rows(self.fetcher.db_path, ALARM_TABLE)
-        log.info("Cleared %s table (if it contained any rows).", ALARM_TABLE)
