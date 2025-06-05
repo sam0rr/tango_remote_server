@@ -97,7 +97,7 @@ MAX_RETRY=5                  # max retry attempts (with back-off)
 INITIAL_DELAY_MS=200         # initial back-off delay (milliseconds)
 LOG_LEVEL=INFO               # DEBUG | INFO | WARNING | ERROR
 MIN_VALID_TS_MS=946684800000 # 2000-01-01 UTC in ms
-PURGE_LOG_DAYS=7             # auto-delete log files older than X days
+PURGE_LOG_DAYS=2             # auto-delete log files older than X days
 ```
 
 Notes:

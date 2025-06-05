@@ -5,13 +5,17 @@ Orchestrates:
   1) fetch_and_prepare() from DataFetcher (returns list of payloads with "rowid")
   2) chunk payloads by max_per_sec
   3) send each one via HttpClient.send_resilient()
-  4) for each mini-batch, collect ALL rowids envoyés et supprimer en bloc
+  4) for each mini-batch, collect ALL rowids and delete them in bulk from tc900log
   5) enforce 1s delay between batches
+  6) at the end, clear all rows from rel_alarmes
 """
 
 import time
 import logging
-from utils.db_cleaner import delete_rows
+from utils.db_cleaner import delete_rows, delete_all_rows
+
+TELEMETRY_TABLE = "tc900log"
+ALARM_TABLE     = "rel_alarmes"
 
 log = logging.getLogger("send_launcher")
 
@@ -19,8 +23,9 @@ log = logging.getLogger("send_launcher")
 class SendToLauncher:
     """
     Launches the telemetry pipeline by combining a DataFetcher and HttpClient.
-    Payloads are sent in small batches; chaque payload réussi est mis dans une
-    liste, puis tous sont supprimés en bloc à la fin d'un batch.
+    Payloads are sent in small batches; each successfully sent payload's rowid
+    is collected, then all collected rowids are deleted in one SQL transaction.
+    After that, the alarms table is cleared if it contains any rows.
     """
 
     def __init__(self, fetcher, client, max_per_sec: int):
@@ -92,10 +97,9 @@ class SendToLauncher:
                     sent_total += 1
             except Exception as e:
                 log.warning("Failed to send single payload: %s", e)
-                
+
         if rowids_to_delete:
-            delete_rows(self.fetcher.db_path, rowids_to_delete)
-            log.debug("Deleted rowids %s from database", rowids_to_delete)
+            delete_rows(self.fetcher.db_path, TELEMETRY_TABLE, rowids_to_delete)
 
         return sent_total
 
@@ -113,6 +117,9 @@ class SendToLauncher:
         Entry point:
           1) Fetch all payloads (list of dicts with "rowid", "ts", "values").
           2) Chunk them by max_per_sec and call _send_fine_grained_batch().
+          3) After all telemetry rows are sent & deleted, clear the rel_alarmes table.
         """
         payloads = self._fetch_payloads()
         self._send_in_chunks(payloads)
+
+        delete_all_rows(self.fetcher.db_path, ALARM_TABLE)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-main.py — Entrypoint: loads .env, instantiates the correct DataFetcher & HttpClient,
-then calls SendToLauncher.start().
+main.py — Entrypoint: loads .env, configures logging, then purges old logs
+and calls SendToLauncher.start().
 """
 
 import os
@@ -17,7 +17,6 @@ from fetchers.sitrad_data_fetcher import SitradDataFetcher
 from launcher.send_launcher import SendToLauncher
 from utils.log_cleaner import purge_old_logs
 
-
 def load_dotenv(dotenv_path: str):
     """Load environment variables from .env file if present."""
     path = Path(dotenv_path)
@@ -32,7 +31,6 @@ def load_dotenv(dotenv_path: str):
         key, val = line.split("=", 1)
         val = val.split("#", 1)[0].strip()
         os.environ.setdefault(key, val)
-
 
 def setup_logging() -> logging.Logger:
     """Configure logging to console and to a log file in logs/ directory."""
@@ -54,12 +52,11 @@ def setup_logging() -> logging.Logger:
 
     return logging.getLogger("send_to_thingsboard")
 
-
 def get_env_config() -> tuple[str, int]:
     """
     Extract core config values from the environment:
-      - DB_PATH       : path to the SQLite database
-      - MAX_MSGS_PER_SEC : number of messages per second
+      - DB_PATH         : path to the SQLite database
+      - MAX_MSGS_PER_SEC: number of messages per second
     """
     raw_db = os.getenv("DB_PATH")
     if not raw_db:
@@ -70,24 +67,22 @@ def get_env_config() -> tuple[str, int]:
 
     return db_path, max_per_sec
 
-
 def build_launcher(db_path: str, max_per_sec: int) -> SendToLauncher:
     """Create the full launcher instance with configured fetcher and client."""
     fetcher = SitradDataFetcher(db_path=db_path)
     client = ThingsBoardClient()
     return SendToLauncher(fetcher, client, max_per_sec=max_per_sec)
 
-
 def main():
     """Entrypoint for launching the data pipeline."""
     dotenv_file = os.path.join(pkg_dir, ".env")
     load_dotenv(dotenv_file)
 
-    logs_path = Path(pkg_dir) / "logs"
-    purge_days = int(os.getenv("PURGE_LOG_DAYS", "7"))
-    purge_old_logs(logs_path, max_age_days=purge_days)
-
     log = setup_logging()
+
+    logs_path = Path(pkg_dir) / "logs"
+    purge_days = int(os.getenv("PURGE_LOG_DAYS", "2"))
+    purge_old_logs(logs_path, max_age_days=purge_days)
 
     try:
         db_path, max_per_sec = get_env_config()
@@ -98,7 +93,6 @@ def main():
     except Exception as e:
         log.exception("An error occurred during execution:")
         sys.exit(1)
-
 
 if __name__ == "__main__":
     main()

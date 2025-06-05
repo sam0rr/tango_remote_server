@@ -5,7 +5,7 @@ BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 UNIT_DIR="$HOME/.config/systemd/user"
 SCRIPT_PATH="$BASEDIR/send_to_tb/main.py"
 
-echo "🔧reating systemd timer for:"
+echo "reating systemd timer for:"
 echo "    $SCRIPT_PATH"
 
 mkdir -p "$UNIT_DIR"
