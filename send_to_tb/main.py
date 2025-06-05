@@ -8,16 +8,17 @@ import sys
 import logging
 from pathlib import Path
 
+pkg_dir = Path(__file__).resolve().parent
+sys.path.insert(0, str(pkg_dir))
+
 from dotenv import load_dotenv
 from clients.thingsboard_client import ThingsBoardClient
 from fetchers.sitrad_data_fetcher import SitradDataFetcher
 from launcher.send_launcher import SendToLauncher
 from utils.log_cleaner import purge_old_logs
 
-pkg_dir = Path(__file__).resolve().parent
 dotenv_path = pkg_dir / ".env"
 logs_path = pkg_dir / "logs"
-sys.path.insert(0, str(pkg_dir))
 
 def setup_logging() -> logging.Logger:
     """
