@@ -55,22 +55,25 @@ def setup_logging() -> logging.Logger:
     return logging.getLogger("send_to_thingsboard")
 
 
-def get_env_config() -> tuple[str, str, int]:
-    """Extract core config values from the environment."""
+def get_env_config() -> tuple[str, int]:
+    """
+    Extract core config values from the environment:
+      - DB_PATH       : path to the SQLite database
+      - MAX_MSGS_PER_SEC : number of messages per second
+    """
     raw_db = os.getenv("DB_PATH")
     if not raw_db:
         raise ValueError("DB_PATH is missing in environment. Exiting.")
 
     db_path = os.path.expanduser(raw_db)
-    state_file = os.getenv("STATE_FILE", ".last_rowid")
     max_per_sec = int(os.getenv("MAX_MSGS_PER_SEC", "10"))
 
-    return db_path, state_file, max_per_sec
+    return db_path, max_per_sec
 
 
-def build_launcher(db_path: str, state_file: str, max_per_sec: int) -> SendToLauncher:
+def build_launcher(db_path: str, max_per_sec: int) -> SendToLauncher:
     """Create the full launcher instance with configured fetcher and client."""
-    fetcher = SitradDataFetcher(db_path=db_path, state_file=state_file)
+    fetcher = SitradDataFetcher(db_path=db_path)
     client = ThingsBoardClient()
     return SendToLauncher(fetcher, client, max_per_sec=max_per_sec)
 
@@ -87,8 +90,8 @@ def main():
     log = setup_logging()
 
     try:
-        db_path, state_file, max_per_sec = get_env_config()
-        launcher = build_launcher(db_path, state_file, max_per_sec)
+        db_path, max_per_sec = get_env_config()
+        launcher = build_launcher(db_path, max_per_sec)
 
         log.info("Starting send_to_thingsboard...")
         launcher.start()
