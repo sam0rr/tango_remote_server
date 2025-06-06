@@ -5,7 +5,7 @@ trap 'echo "Error line $LINENO: $BASH_COMMAND" >&2' ERR
 ###############################################################################
 #  setup_sitrad.sh — Smart launcher for Sitrad 4.13 on Raspberry Pi
 #  • Detects the FTDI adapter and maps it to COM1
-#  • Blocks COM2-COM20 (or unblocks them with --unblock)
+#  • Blocks COM2-COM20 (ou unblocks them with --unblock)
 #  • Adds the “sitrad4.13” alias
 #  • Launches SitradLocal.exe
 #
@@ -20,6 +20,7 @@ LOG="$HOME/sitrad_setup.log"
 EXE="$HOME/.wine/drive_c/Program Files (x86)/Full Gauge/Sitrad/SitradLocal.exe"
 DOS="$HOME/.wine/dosdevices"
 ALIAS_CMD="alias sitrad4.13='wine \"$EXE\"'"
+BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 DEVICE_OVERRIDE=""
 UNBLOCK=false
@@ -83,7 +84,14 @@ for f in "$DOS"/com*; do ls -ld "$f"; done | sed 's/^/   /'
 grep -Fqx "$ALIAS_CMD" "$HOME/.bashrc" 2>/dev/null || echo "$ALIAS_CMD" >> "$HOME/.bashrc"
 
 # ── launch Sitrad ─────────────────────────────────────────────────────────────
-echo -e "\nLaunching Sitrad 4.13…\n"
-wine "$EXE"
+export DISPLAY=:0
+export XAUTHORITY="$HOME/.Xauthority"
 
-echo -e "\nSitrad exited. All done."
+echo -e "\nLaunching Sitrad 4.13…\n"
+wine "$EXE" &
+
+# ── wait and auto-trigger Ctrl+L ──────────────────────────────────────────────
+sleep 30
+"$BASEDIR/send_ctrl_l_to_sitrad.sh" || echo "Could not auto-trigger communication"
+
+echo -e "\nSitrad launched in background. Ctrl+L sent if possible."
