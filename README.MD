@@ -10,32 +10,32 @@ This project collects data from an industrial device (e.g., TC-900 from Full Gau
 
 ```
 scripts/
-├── venv/                   ← Python virtual environment
-├── send_to_tb/             ← Main Python package (“send_to_tb”)
-│   ├── __init__.py
-│   ├── .env
-│   ├── main.py
-│   ├── clients/
-│   │   ├── __init__.py
-│   │   ├── http_client.py
-│   │   └── thingsboard_client.py
-│   ├── fetchers/
-│   │   ├── __init__.py
-│   │   ├── data_fetcher.py
-│   │   └── sitrad_data_fetcher.py
-│   ├── launcher/
-│   │   ├── __init__.py
-│   │   └── send_launcher.py
-│   └── utils/
-│       ├── __init__.py
-│       ├── log_cleaner.py        ← automatically purge old log files
-│       └── db_cleaner.py         ← delete sent rows from the database
-├── setup_bash/             ← Operational Bash scripts
-│   ├── setup_timer.sh      ← Install systemd timer
-│   ├── kill_timer.sh       ← Remove the timer
-│   └── setup_sitrad.sh     ← Launch Wine + Sitrad PRO
+├── venv/ ← Python virtual environment
+├── send_to_tb/ ← Main Python package
+│ ├── init.py
+│ ├── .env
+│ ├── main.py
+│ ├── clients/
+│ │ ├── init.py
+│ │ ├── http_client.py
+│ │ └── thingsboard_client.py
+│ ├── fetchers/
+│ │ ├── init.py
+│ │ ├── data_fetcher.py
+│ │ └── sitrad_data_fetcher.py
+│ ├── launcher/
+│ │ ├── init.py
+│ │ └── send_launcher.py
+│ └── utils/
+│ ├── init.py
+│ ├── log_cleaner.py ← automatically purge old log files
+│ └── db_cleaner.py ← delete sent rows from the database
+├── sitrad/
+│ └── setup_sitrad.sh ← Launch Wine + Sitrad PRO
+├── setup_bash/
+│ ├── setup_services.sh ← Install systemd services (Sitrad + send_to_tb)
+│ └── kill_services.sh ← Uninstall the systemd services
 ```
-
 ---
 
 ## Prerequisites
@@ -115,12 +115,12 @@ From the `scripts/` root:
 
 ```bash
 chmod +x send_to_tb/main.py
-chmod +x setup_bash/setup_timer.sh
-chmod +x setup_bash/kill_timer.sh
-chmod +x setup_bash/setup_sitrad.sh
+chmod +x sitrad/setup_sitrad.sh
+chmod +x setup_bash/setup_services.sh
+chmod +x setup_bash/kill_services.sh
 ```
 
-### 5. Run the send_to_tb Program
+### 5. Manual Execution
 
 Activate the virtual environment:
 
@@ -152,30 +152,31 @@ python -m send_to_tb.main
 
 ---
 
-## Automatic Execution Every 30 Seconds
+## Automatic Execution On Boot
 
-### Install the Timer
+### Install Services
 
 ```bash
-./setup_bash/setup_timer.sh
+./setup_bash/setup_services.sh
 ```
 
 This creates and enables:
 
-- `~/.config/systemd/user/send_to_tb.service`
-- `~/.config/systemd/user/send_to_tb.timer`
+- `~/.config/systemd/user/sitrad.service (auto restart on crash)`
+- `~/.config/systemd/user/send_to_tb.timer (runs every 30 seconds)`
 
-### Check Timer Status
+### Check Status
 
 ```bash
 systemctl --user list-timers
+journalctl --user -u sitrad.service -f
 journalctl --user -u send_to_tb.service -n 50
 ```
 
-### Remove the Timer
+### Uninstall Services
 
 ```bash
-./setup_bash/kill_timer.sh
+./setup_bash/kill_services.sh
 ```
 
 ---
@@ -183,7 +184,7 @@ journalctl --user -u send_to_tb.service -n 50
 ## Launching Sitrad PRO (via Wine)
 
 ```bash
-./setup_bash/setup_sitrad.sh
+./sitrad/setup_sitrad.sh
 ```
 
 ---
@@ -253,6 +254,7 @@ systemctl --user list-timers
 
 ```bash
 journalctl --user -u send_to_tb.service -n 50
+journalctl --user -u sitrad.service -f
 ```
 
 **Q: Where should I run chmod +x?**
