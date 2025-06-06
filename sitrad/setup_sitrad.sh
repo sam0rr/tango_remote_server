@@ -3,15 +3,15 @@ set -Eeuo pipefail
 trap 'echo "Error line $LINENO: $BASH_COMMAND" >&2' ERR
 
 ###############################################################################
-#  setup_sitrad.sh — Smart launcher for Sitrad 4.13 on Raspberry Pi
+#  setup_sitrad.sh — Smart launcher for Sitrad 4.13 on Raspberry Pi (headless)
 #  • Detects the FTDI adapter and maps it to COM1
-#  • Blocks COM2-COM20 (ou unblocks them with --unblock)
-#  • Adds the “sitrad4.13” alias
-#  • Launches SitradLocal.exe
+#  • Blocks COM2-COM20 (ou débloque avec --unblock)
+#  • Ajoute l’alias sitrad4.13
+#  • Lance SitradLocal.exe dans Wine (DISPLAY=:1 via Xvfb)
 #
 #  Options:
 #     --device=/dev/ttyUSBx   force the RS-485 port
-#     --unblock               remove COM2-COM20 directories and exit
+#     --unblock              remove COM2-COM20 directories and exit
 ###############################################################################
 
 [[ $EUID -eq 0 ]] && { echo "Run as normal user, not root."; exit 1; }
@@ -35,7 +35,7 @@ done
 # ── log rotation ──────────────────────────────────────────────────────────────
 [[ -f $LOG && $(stat -c%s "$LOG") -gt 131072 ]] && mv -f "$LOG" "$LOG.$(date +%s)"
 exec > >(tee -a "$LOG") 2>&1
-echo -e "\n$(date '+%F %T') — setup_sitrad.sh start\n"
+echo -e "\n$(date '+%F %T') — setup_sitrad.sh (headless) start\n"
 
 mkdir -p "$DOS"
 
@@ -84,8 +84,7 @@ for f in "$DOS"/com*; do ls -ld "$f"; done | sed 's/^/   /'
 grep -Fqx "$ALIAS_CMD" "$HOME/.bashrc" 2>/dev/null || echo "$ALIAS_CMD" >> "$HOME/.bashrc"
 
 # ── launch Sitrad ─────────────────────────────────────────────────────────────
-export DISPLAY=:0
-export XAUTHORITY="$HOME/.Xauthority"
+export DISPLAY=:1
 
 echo -e "\nLaunching Sitrad 4.13…\n"
 wine "$EXE" &

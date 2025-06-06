@@ -14,11 +14,14 @@ After=network.target
 
 [Service]
 Type=simple
-Restart=always
-RestartSec=3
+# Start a virtual X server on DISPLAY :1 before launching Wine
+ExecStartPre=/usr/bin/Xvfb :1 -screen 0 1024x768x16
+Environment=DISPLAY=:1 WINEDEBUG=-all
 WorkingDirectory=$(dirname "$SITRAD_SCRIPT")
 ExecStart=$SITRAD_SCRIPT
-Environment="DISPLAY=:0" "WINEDEBUG=-all"
+
+Restart=always
+RestartSec=3
 
 [Install]
 WantedBy=default.target
@@ -34,7 +37,7 @@ Description=Send telemetry to ThingsBoard
 Type=oneshot
 WorkingDirectory=$BASEDIR/send_to_tb
 ExecStart=$SEND_SCRIPT
-Environment="PYTHONUNBUFFERED=1"
+Environment=PYTHONUNBUFFERED=1
 EOF
 
 cat > "$UNIT_DIR/send_to_tb.timer" <<EOF
@@ -58,7 +61,7 @@ systemctl --user enable --now sitrad.service
 systemctl --user enable --now send_to_tb.timer
 
 echo -e "\nServices installed and running:"
-echo "   - sitrad.service      (restart on crash)"
+echo "   - sitrad.service      (restart on crash, headless Xvfb on DISPLAY :1)"
 echo "   - send_to_tb.timer    (runs every 30s)"
 echo -e "\nTo monitor:"
 echo "   journalctl --user -u sitrad.service -f"

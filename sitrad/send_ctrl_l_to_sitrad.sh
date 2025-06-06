@@ -3,9 +3,9 @@ set -euo pipefail
 
 echo "Checking environment…"
 
-# Verify that we are in an X11 session
+# Verify that we are in an X11 session (DISPLAY=:1 via Xvfb)
 if [[ -z "${DISPLAY:-}" ]]; then
-    echo "DISPLAY is not set. Run in a graphical X11 session."
+    echo "DISPLAY is not set. Run in a graphical X11 session (or Xvfb)."
     exit 1
 fi
 
@@ -15,10 +15,6 @@ if ! [[ $DISPLAY =~ :[0-9]+ ]]; then
 fi
 
 echo "X11 session detected (DISPLAY=$DISPLAY)"
-
-# Ensure XAUTHORITY is defined
-export XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}"
-echo "Using XAUTHORITY=$XAUTHORITY"
 
 # Locate the Sitrad window
 echo "Searching for 'Sitrad Local' window…"
