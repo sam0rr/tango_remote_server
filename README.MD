@@ -50,12 +50,13 @@ scripts/
 - Two additional packages for headless Sitrad:  
   1. **Xvfb** (X virtual framebuffer)  
   2. **xdotool** (to send “Ctrl+L” to the Sitrad window)  
+  3. **openbox** (to send focus a virtual window)  
 
 Install those with:
 
 ```bash
 sudo apt update
-sudo apt install xvfb xdotool
+sudo apt install -y openbox xdotool xvfb
 ```
 
 ---

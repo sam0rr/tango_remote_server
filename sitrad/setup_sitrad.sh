@@ -88,6 +88,7 @@ export DISPLAY=:1
 
 echo -e "\nLaunching Sitrad 4.13…\n"
 wine "$EXE" &
+WINE_PID=$!
 
 # ── wait until window exists, then sleep 30s ──────────────────────────────────
 echo "Waiting for Sitrad window…"
@@ -101,4 +102,8 @@ sleep 30
 # ── auto-trigger Ctrl+L ───────────────────────────────────────────────────────
 "$BASEDIR/send_ctrl_l_to_sitrad.sh" || echo "Could not auto-trigger communication"
 
-echo -e "\nSitrad launched in background. Ctrl+L sent if possible."
+echo -e "\nCtrl+L sent. Now waiting for Sitrad process (PID=$WINE_PID)…"
+
+# ── keep script alive as long as Sitrad runs ───────────────────────────────────
+wait "$WINE_PID"
+echo "Sitrad has exited (PID=$WINE_PID). Exiting setup_sitrad.sh."

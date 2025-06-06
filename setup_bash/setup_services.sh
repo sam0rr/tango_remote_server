@@ -14,12 +14,13 @@ After=network.target
 
 [Service]
 Type=simple
-# Start Xvfb in the background so that this step doesn't block
-ExecStartPre=/usr/bin/sh -c "Xvfb :1 -screen 0 1024x768x16 &"
-Environment=DISPLAY=:1 WINEDEBUG=-all
+ExecStartPre=/usr/bin/sh -c "Xvfb :1 -screen 0 1024x768x16 -ac & sleep 0.5"
+ExecStartPre=/usr/bin/sh -c "DISPLAY=:1 openbox & sleep 0.5"
+Environment=DISPLAY=:1
+Environment=XAUTHORITY=%h/.Xauthority
+Environment=WINEDEBUG=-all
 WorkingDirectory=$(dirname "$SITRAD_SCRIPT")
 ExecStart=$SITRAD_SCRIPT
-
 Restart=always
 RestartSec=3
 
@@ -27,7 +28,7 @@ RestartSec=3
 WantedBy=default.target
 EOF
 
-# --- Setup send_to_tb Service + Timer (unchanged) ---
+# --- Setup send_to_tb Service + Timer ---
 SEND_SCRIPT="$BASEDIR/send_to_tb/main.py"
 cat > "$UNIT_DIR/send_to_tb.service" <<EOF
 [Unit]
