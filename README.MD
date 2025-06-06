@@ -116,6 +116,7 @@ From the `scripts/` root:
 ```bash
 chmod +x send_to_tb/main.py
 chmod +x sitrad/setup_sitrad.sh
+chmod +x sitrad/send_ctrl_l_to_sitrad.sh
 chmod +x setup_bash/setup_services.sh
 chmod +x setup_bash/kill_services.sh
 ```
