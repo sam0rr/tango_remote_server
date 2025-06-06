@@ -14,8 +14,8 @@ After=network.target
 
 [Service]
 Type=simple
-# Start a virtual X server on DISPLAY :1 before launching Wine
-ExecStartPre=/usr/bin/Xvfb :1 -screen 0 1024x768x16
+# Start Xvfb in the background so that this step doesn't block
+ExecStartPre=/usr/bin/sh -c "Xvfb :1 -screen 0 1024x768x16 &"
 Environment=DISPLAY=:1 WINEDEBUG=-all
 WorkingDirectory=$(dirname "$SITRAD_SCRIPT")
 ExecStart=$SITRAD_SCRIPT
@@ -27,7 +27,7 @@ RestartSec=3
 WantedBy=default.target
 EOF
 
-# --- Setup send_to_tb Service + Timer ---
+# --- Setup send_to_tb Service + Timer (unchanged) ---
 SEND_SCRIPT="$BASEDIR/send_to_tb/main.py"
 cat > "$UNIT_DIR/send_to_tb.service" <<EOF
 [Unit]
