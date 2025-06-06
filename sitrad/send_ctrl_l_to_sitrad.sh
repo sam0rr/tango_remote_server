@@ -27,7 +27,12 @@ fi
 
 echo "Found window ID: $WID"
 
-# Send Ctrl+L directly to that window
+# Give the Sitrad window the input focus
+echo "→ Focusing window $WID"
+xdotool windowfocus "$WID"
+sleep 0.1
+
+# Then send Ctrl+L directly to that window
 echo "→ Sending: xdotool key --window $WID ctrl+l"
 if xdotool key --window "$WID" ctrl+l; then
     echo "Success: Ctrl+L sent."
