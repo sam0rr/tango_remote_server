@@ -18,7 +18,7 @@ echo "Found window ID: $WID"
 # ── 2) Focus it ────────────────────────────────────────────────────────────────
 xdotool windowmap    "$WID"
 sleep 0.1
-xdotool windowactivate "$WID"
+xdotool windowfocus  "$WID"
 sleep 0.2
 
 # ── 3) Send Ctrl+L ─────────────────────────────────────────────────────────────

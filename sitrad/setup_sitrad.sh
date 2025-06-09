@@ -98,12 +98,17 @@ while ! WID=$(xdotool search --name "Sitrad Local" 2>/dev/null | head -n1); do
   sleep 0.5
 done
 
-echo "Window detected (ID=$WID). Sleeping 30 seconds to let UI finish loading…"
+echo "Window detected (ID=$WID). Sleeping 30 seconds (finish loading…)"
 sleep 30
 
 # send Ctrl+L
 "$BASEDIR/send_ctrl_l_to_sitrad.sh" || echo "Could not auto-trigger communication"
 
-echo -e "\nCtrl+L sent. Now waiting for Sitrad process (PID=$WINE_PID)…"
+if "$BASEDIR/send_ctrl_l_to_sitrad.sh"; then
+  echo -e "\nCtrl+L sent. Now waiting for Sitrad (PID=$WINE_PID)…"
+else
+  echo -e "\nCould not auto-trigger communication. Continuing anyway…"
+fi
+
 wait "$WINE_PID"
 echo "Sitrad has exited (PID=$WINE_PID). Exiting setup_sitrad.sh."
