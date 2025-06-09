@@ -24,7 +24,7 @@ sleep 0.2
 # ── 3) Send Ctrl+L ─────────────────────────────────────────────────────────────
 echo "→ Sending Ctrl+L to window $WID"
 if xdotool key --window "$WID" ctrl+l; then
-  echo "✅ Ctrl+L sent."
+  echo "Ctrl+L sent."
   exit 0
 else
   echo "Failed to send Ctrl+L."
