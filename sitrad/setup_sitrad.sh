@@ -16,7 +16,6 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 [[ $EUID -eq 0 ]] && { echo "Run as normal user, not root."; exit 1; }
 
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOGFILE="$HOME/sitrad_setup.log"
 EXE_PATH="$HOME/.wine/drive_c/Program Files (x86)/Full Gauge/Sitrad/SitradLocal.exe"
 DOS_DIR="$HOME/.wine/dosdevices"
 BASHRC="$HOME/.bashrc"
@@ -47,18 +46,6 @@ check_dependencies() {
         log "Missing dependencies: ${missing[*]}"
         log "Please install them with: sudo apt install ${missing[*]}"
         exit 1
-    fi
-}
-
-# ── Rotate logs if >128 KB ────────────────────────────────────────────────────
-rotate_logs() {
-    local max_size=131072
-    if [[ -f $LOGFILE ]]; then
-        local size
-        size=$(stat -c%s "$LOGFILE" 2>/dev/null || echo 0)
-        if [[ $size -gt $max_size ]]; then
-            mv -f "$LOGFILE" "$LOGFILE.$(date +%s)"
-        fi
     fi
 }
 
@@ -160,8 +147,6 @@ trigger_ctrl_l() {
 }
 
 main() {
-    rotate_logs
-    exec > >(tee -a "$LOGFILE") 2>&1
     log "──────────────────────────────────────────────────────"
     log "Starting setup_sitrad.sh"
     check_dependencies
