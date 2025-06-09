@@ -93,7 +93,7 @@ detect_ftdi() {
             [[ $vendor == FTDI ]] && FTDI_DEVICE="$dev"
         done
     fi
-    [[ -z ${FTDI_DEVICE:-} ]] && { log "❌ No FTDI adapter found"; exit 1; }
+    [[ -z ${FTDI_DEVICE:-} ]] && { log "No FTDI adapter found"; exit 1; }
     log "Using $FTDI_DEVICE as COM1"
 }
 
