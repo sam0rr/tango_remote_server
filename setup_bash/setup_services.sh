@@ -15,8 +15,9 @@ After=network.target
 
 [Service]
 Type=simple
-# Launch Xvfb and a minimal window manager (Openbox) on display :1
-action=/usr/bin/env bash -c "nohup Xvfb :1 -screen 0 1024x768x16 -ac >/dev/null 2>&1 & sleep 1; nohup openbox --display :1 >/dev/null 2>&1 &"
+Environment=DISPLAY=:1
+ExecStartPre=/usr/bin/sh -c 'Xvfb :1 -screen 0 1024x768x16 -ac >/dev/null 2>&1 & sleep 1'
+ExecStart=/usr/bin/openbox
 Restart=always
 RestartSec=5
 
@@ -30,19 +31,16 @@ cat > "$UNIT_DIR/sitrad-app.service" <<EOF
 [Unit]
 Description=Launch Sitrad 4.13 and auto Ctrl+L
 After=sitrad-display.service
-Wants=sitrad-display.service
+Requires=sitrad-display.service
 
 [Service]
 Type=simple
 Environment=DISPLAY=:1
 Environment=WINEDEBUG=-all
-# Restart when the application crashes
-Restart=always
-RestartSec=3
-
-# Run from the project's sitrad directory
 WorkingDirectory=$BASEDIR/sitrad
 ExecStart=$SITRAD_SCRIPT
+Restart=always
+RestartSec=3
 
 [Install]
 WantedBy=default.target
@@ -75,20 +73,21 @@ Persistent=true
 WantedBy=timers.target
 EOF
 
-# --- Enable and start services ---
+# --- Enable and start services/timers ---
 echo "Reloading user systemd units..."
 systemctl --user daemon-reload
-# Enable and start services/timers
-echo "Enabling sitrad-display.service and sitrad-app.service..."
+echo "Enabling and starting services..."
 systemctl --user enable --now sitrad-display.service
 systemctl --user enable --now sitrad-app.service
 systemctl --user enable --now send_to_tb.timer
 
-echo -e "\nServices installed and running:"
+echo -e "
+Services installed and running:"
 echo "  - sitrad-display.service  (Xvfb + Openbox)"
 echo "  - sitrad-app.service      (Wine + auto Ctrl+L)"
 echo "  - send_to_tb.timer        (runs every 30s)"
-echo -e "\nTo monitor:"
+echo -e "
+To monitor:"
 echo "  journalctl --user -u sitrad-display.service -f"
-echo "  journalctl --user -u sitrad-app.service -f"
+echo "  journalctl --user -u sitrad-app.service     -f"
 echo "  journalctl --user -u send_to_tb.service -n 50"
