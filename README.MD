@@ -2,7 +2,7 @@
 
 ## Project Description
 
-This project collects data from an industrial device (e.g., TC‑900 from Full Gauge), formats it, and sends it to ThingsBoard Cloud using a resilient HTTP client. It is designed to be reliable, modular, and easy to maintain. It also supports running Sitrad PRO under Wine in a “headless” environment (no physical monitor), using a virtual X server.
+This project collects data from an industrial device (e.g., TC-900 from Full Gauge), formats it, and sends it to ThingsBoard Cloud using a resilient HTTP client. It is designed to be reliable, modular, and easy to maintain. It also supports running Sitrad PRO under Wine in a “headless” environment (no physical monitor), using a virtual X server.
 
 ---
 
@@ -32,10 +32,10 @@ scripts/
 │       └── db_cleaner.py         ← delete sent rows from the database
 ├── sitrad/
 │   ├── setup_sitrad.sh           ← Launch Wine + Sitrad PRO (headless/Xvfb support)
-│   └── send_ctrl_l_to_sitrad.sh  ← Auto‑send “Ctrl+L” to Sitrad window (headless)
-└── setup_bash/
-    ├── setup_services.sh         ← Install systemd services (display + app + telemetry)
-    └── kill_services.sh          ← Uninstall the systemd services and timer
+│   └── send_ctrl_l_to_sitrad.sh  ← Auto‐send “Ctrl+L” to Sitrad window (headless)
+├── setup_bash/
+│   ├── setup_services.sh         ← Install systemd services (Sitrad + send_to_tb)
+│   └── kill_services.sh          ← Uninstall the systemd services
 ```
 
 ---
@@ -187,20 +187,20 @@ That will start Sitrad under Wine inside a virtual X server (Xvfb on `:1`), then
 ./setup_bash/setup_services.sh
 ```
 
-* **sitrad-display.service**
-  Starts Xvfb + Openbox on `:1` for the virtual X session.
-* **sitrad-app.service**
-  Launches Sitrad under Wine on `:1`, waits for the window, and auto-sends Ctrl+L.
-* **send\_to\_tb.timer**
-  Triggers the telemetry sender every 30 s (first run 10 s after boot).
+This creates and enables:
+
+- `~/.config/systemd/user/sitrad.service`  
+  - Runs Sitrad under Wine in a headless Xvfb on `:1`  
+  - Automatically restarts if it crashes  
+- `~/.config/systemd/user/send_to_tb.timer`  
+  - Triggers `send_to_tb.service` every 30 seconds (starts 10 s after boot)
 
 ### Check Status
 
 ```bash
-systemctl --user status sitrad-display.service
-systemctl --user status sitrad-app.service
-journalctl --user -u sitrad-app.service -f    # follow Sitrad logs
-journalctl --user -u send_to_tb.service -n 50  # last 50 lines of telemetry logs
+systemctl --user list-timers
+journalctl --user -u sitrad.service -f       # Follow Sitrad logs
+journalctl --user -u send_to_tb.service -n 50  # Last 50 lines of telemetry‐sender logs
 ```
 
 ### Uninstall Services

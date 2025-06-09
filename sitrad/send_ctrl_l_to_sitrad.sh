@@ -15,7 +15,7 @@ if [[ -z "$WID" ]]; then
 fi
 echo "Found window ID: $WID"
 
-# ── 2) Focus it ────────────────────────────────────────────────────────────────
+# ── 2) Focus ────────────────────────────────────────────────────────────────
 xdotool windowmap    "$WID"
 sleep 0.1
 xdotool windowfocus  "$WID"
