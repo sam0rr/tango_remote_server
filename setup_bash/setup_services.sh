@@ -38,7 +38,10 @@ Type=simple
 Environment=DISPLAY=:1
 Environment=WINEDEBUG=-all
 WorkingDirectory=$BASEDIR/sitrad
+
+ExecStartPre=/usr/bin/udevadm settle --timeout=30
 ExecStart=$SITRAD_SCRIPT
+
 Restart=always
 RestartSec=3
 
