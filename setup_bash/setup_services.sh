@@ -13,7 +13,7 @@ Description=Run Sitrad 4.13 on boot and restart if it crashes
 After=network.target
 
 [Service]
-Type=simple
+Type=idle
 Environment=DISPLAY=:1
 Environment=WINEDEBUG=-all
 Restart=always
