@@ -34,11 +34,32 @@ error_handler() {
     exit 1
 }
 
+# ── Check for required tools ──────────────────────────────────────────────────
+check_dependencies() {
+    local missing=()
+    for cmd in wine Xvfb openbox udevadm; do
+        if ! command -v "$cmd" >/dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+
+    if (( ${#missing[@]} > 0 )); then
+        log "Missing dependencies: ${missing[*]}"
+        log "Please install them with: sudo apt install ${missing[*]}"
+        exit 1
+    fi
+}
+
 # ── Rotate logs if >128 KB ────────────────────────────────────────────────────
 rotate_logs() {
     local max_size=131072
-    [[ -f $LOGFILE && $(stat -c%s "$LOGFILE") -gt $max_size ]] &&
-        mv -f "$LOGFILE" "$LOGFILE.$(date +%s)"
+    if [[ -f $LOGFILE ]]; then
+        local size
+        size=$(stat -c%s "$LOGFILE" 2>/dev/null || echo 0)
+        if [[ $size -gt $max_size ]]; then
+            mv -f "$LOGFILE" "$LOGFILE.$(date +%s)"
+        fi
+    fi
 }
 
 # ── Parse command-line arguments ──────────────────────────────────────────────
@@ -62,7 +83,7 @@ start_x_session() {
     mkdir -p "$DOS_DIR"
 }
 
-# ── Remove reserved COM ports (used with --unblock) ─────────────────────────--
+# ── Remove reserved COM ports (used with --unblock) ────────────────────────────
 unblock_ports() {
     log "Removing COM2–COM20 blockers"
     find "$DOS_DIR" -maxdepth 1 \(
@@ -89,7 +110,7 @@ detect_ftdi() {
     log "Using $FTDI_DEVICE as COM1"
 }
 
-# ── Block COM2–COM20 to prevent Wine from auto-mapping ───────────────────────
+# ── Block COM2–COM20 to prevent Wine from auto-mapping ────────────────────────
 block_ports() {
     log "Blocking COM2–COM20"
     find "$DOS_DIR" -maxdepth 1 -type l -name 'com*' -exec rm -f {} +
@@ -104,7 +125,7 @@ map_com1() {
     ln -sf "$FTDI_DEVICE" "$DOS_DIR/com1"
 }
 
-# ── Add a shell alias to easily launch Sitrad manually ───────────────────────
+# ── Add a shell alias to easily launch Sitrad manually ────────────────────────
 add_alias() {
     local alias_cmd="alias sitrad4.13='wine \"$EXE_PATH\"'"
     if ! grep -Fxq "$alias_cmd" "$BASHRC"; then
@@ -129,20 +150,21 @@ trigger_ctrl_l() {
     done
     log "Window $wid detected — waiting 30s"
     sleep 30
-    if "$BASEDIR/send_ctrl_l_to_sitrad.sh"; then
-        log "Ctrl+L sent successfully"
+    if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
+        log "Ctrl+L sent successfully to window $wid"
     else
-        log "Could not send Ctrl+L"
+        log "Could not send Ctrl+L to window $wid"
     fi
     wait "$WINE_PID"
     log "Sitrad exited (PID=$WINE_PID)"
 }
 
-# ── Main ────────────────────────────────────────────────────────────
 main() {
     rotate_logs
     exec > >(tee -a "$LOGFILE") 2>&1
+    log "──────────────────────────────────────────────────────"
     log "Starting setup_sitrad.sh"
+    check_dependencies
     parse_args "$@"
     start_x_session
     if $UNBLOCK; then

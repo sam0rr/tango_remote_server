@@ -5,7 +5,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 ###############################################################################
 # send_ctrl_l_to_sitrad.sh — Script to focus Sitrad and send Ctrl+L
 # • Ensures correct DISPLAY is used
-# • Detects the Sitrad window (via xdotool)
+# • Uses provided window ID or detects the Sitrad window via xdotool
 # • Focuses the window and sends Ctrl+L
 ###############################################################################
 
@@ -46,7 +46,7 @@ get_window_id() {
 # ── Focus the Sitrad window ───────────────────────────────────────────────────
 focus_window() {
     local wid="$1"
-    xdotool windowmap "$wid"
+    xdotool windowmap "$wid" 2>/dev/null || log "Could not map window $wid (may already be mapped)"
     sleep 0.1
     xdotool windowfocus "$wid"
     sleep 0.2
@@ -56,21 +56,23 @@ focus_window() {
 send_ctrl_l() {
     local wid="$1"
     log "Sending Ctrl+L to window $wid"
-    if xdotool key --window "$wid" ctrl+l; then
-        log "Ctrl+L sent successfully"
-    else
-        log "Failed to send Ctrl+L"
-        exit 1
-    fi
+    xdotool key --window "$wid" ctrl+l
+    log "Ctrl+L sent successfully"
 }
 
 # ── Main ────────────────────────────────────────────────────────────────
 main() {
     prepare_display
-    local window_id
-    window_id=$(get_window_id)
+
+    local window_id="${1:-}"
+    if [[ -n "$window_id" ]]; then
+        log "Using provided window ID: $window_id"
+    else
+        window_id=$(get_window_id)
+    fi
+
     focus_window "$window_id"
-    send_ctrl_l "$window_id"
+    send_ctrl_l   "$window_id"
 }
 
 main "$@"
