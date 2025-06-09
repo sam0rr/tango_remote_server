@@ -3,10 +3,11 @@ set -euo pipefail
 
 ###############################################################################
 # install_services.sh — Install and enable Sitrad and telemetry systemd units
-# • Creates sitrad.service to launch Sitrad in headless Wine mode on login
+# • Creates sitrad.service to launch Sitrad in headless Wine mode
 # • Creates send_to_tb.service to push telemetry to ThingsBoard
 # • Creates send_to_tb.timer to run the telemetry push every 30 seconds
 # • Automatically reloads systemd and enables the services
+# • Enables linger so user-level services start at boot without login
 ###############################################################################
 
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -68,9 +69,14 @@ systemctl --user daemon-reload
 systemctl --user enable --now sitrad.service
 systemctl --user enable --now send_to_tb.timer
 
+# --- Enable linger for user services at boot ---
+echo "Enabling linger for user $(whoami) so services start without login..."
+sudo loginctl enable-linger "$(whoami)"
+
 echo -e "\nServices installed and running:"
 echo "   - sitrad.service      (restart on crash, headless Xvfb via setup_sitrad.sh)"
 echo "   - send_to_tb.timer    (runs every 30s)"
+
 echo -e "\nTo monitor:"
 echo "   journalctl --user -u sitrad.service -f"
 echo "   journalctl --user -u send_to_tb.service -n 50"
