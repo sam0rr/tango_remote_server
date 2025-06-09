@@ -1,32 +1,76 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
+trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 
-# ── 0) Ensure we talk to the right X server ───────────────────────────────────
-export DISPLAY=:1
-echo "Using DISPLAY=$DISPLAY"
+###############################################################################
+# send_ctrl_l_to_sitrad.sh — Script to focus Sitrad and send Ctrl+L
+# • Ensures correct DISPLAY is used
+# • Detects the Sitrad window (via xdotool)
+# • Focuses the window and sends Ctrl+L
+###############################################################################
 
-# ── 1) Find the Sitrad window ─────────────────────────────────────────────────
-echo "Searching for 'Sitrad Local'…"
-WID=$(xdotool search --onlyvisible --name "Sitrad Local" 2>/dev/null | head -n1)
+# ── Configuration variables ───────────────────────────────────────────────────
+WINDOW_NAME="${WINDOW_NAME:-Sitrad Local}"
+DISPLAY_VAL="${DISPLAY_VAL:-:1}"
 
-if [[ -z "$WID" ]]; then
-  echo "Window not found (try: xdotool search --name Sitrad)"
-  exit 1
-fi
-echo "Found window ID: $WID"
+# ── Logging utility ───────────────────────────────────────────────────────────
+log() {
+    echo -e "$(date '+%F %T') | $*"
+}
 
-# ── 2) Focus ────────────────────────────────────────────────────────────────
-xdotool windowmap    "$WID"
-sleep 0.1
-xdotool windowfocus  "$WID"
-sleep 0.2
+# ── Error handler ─────────────────────────────────────────────────────────────
+error_handler() {
+    log "ERROR at line $1: $2"
+    exit 1
+}
 
-# ── 3) Send Ctrl+L ─────────────────────────────────────────────────────────────
-echo "→ Sending Ctrl+L to window $WID"
-if xdotool key --window "$WID" ctrl+l; then
-  echo "Ctrl+L sent."
-  exit 0
-else
-  echo "Failed to send Ctrl+L."
-  exit 1
-fi
+# ── Prepare DISPLAY environment ───────────────────────────────────────────────
+prepare_display() {
+    log "Using DISPLAY=$DISPLAY_VAL"
+    export DISPLAY="$DISPLAY_VAL"
+}
+
+# ── Search for the Sitrad window ──────────────────────────────────────────────
+get_window_id() {
+    log "Searching for window \"$WINDOW_NAME\""
+    local wid
+    wid=$(xdotool search --onlyvisible --name "$WINDOW_NAME" 2>/dev/null | head -n1 || true)
+    if [[ -z "$wid" ]]; then
+        log "Window '$WINDOW_NAME' not found"
+        exit 1
+    fi
+    log "Found window ID: $wid"
+    echo "$wid"
+}
+
+# ── Focus the Sitrad window ───────────────────────────────────────────────────
+focus_window() {
+    local wid="$1"
+    xdotool windowmap "$wid"
+    sleep 0.1
+    xdotool windowfocus "$wid"
+    sleep 0.2
+}
+
+# ── Send Ctrl+L keystroke to the window ───────────────────────────────────────
+send_ctrl_l() {
+    local wid="$1"
+    log "Sending Ctrl+L to window $wid"
+    if xdotool key --window "$wid" ctrl+l; then
+        log "Ctrl+L sent successfully"
+    else
+        log "Failed to send Ctrl+L"
+        exit 1
+    fi
+}
+
+# ── Main ────────────────────────────────────────────────────────────────
+main() {
+    prepare_display
+    local window_id
+    window_id=$(get_window_id)
+    focus_window "$window_id"
+    send_ctrl_l "$window_id"
+}
+
+main "$@"
