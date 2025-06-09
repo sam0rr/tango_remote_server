@@ -14,15 +14,13 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStartPre=/usr/bin/sh -c "Xvfb :1 -screen 0 1024x768x16 -ac & sleep 0.5"
-ExecStartPre=/usr/bin/sh -c "DISPLAY=:1 openbox & sleep 0.5"
 Environment=DISPLAY=:1
-Environment=XAUTHORITY=%h/.Xauthority
 Environment=WINEDEBUG=-all
-WorkingDirectory=$(dirname "$SITRAD_SCRIPT")
-ExecStart=$SITRAD_SCRIPT
 Restart=always
 RestartSec=3
+
+WorkingDirectory=$BASEDIR/sitrad
+ExecStart=$SITRAD_SCRIPT
 
 [Install]
 WantedBy=default.target
@@ -62,7 +60,7 @@ systemctl --user enable --now sitrad.service
 systemctl --user enable --now send_to_tb.timer
 
 echo -e "\nServices installed and running:"
-echo "   - sitrad.service      (restart on crash, headless Xvfb on DISPLAY :1)"
+echo "   - sitrad.service      (restart on crash, headless Xvfb via setup_sitrad.sh)"
 echo "   - send_to_tb.timer    (runs every 30s)"
 echo -e "\nTo monitor:"
 echo "   journalctl --user -u sitrad.service -f"
