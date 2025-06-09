@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+
+###############################################################################
+# uninstall_services.sh — Cleanup for all systemd services related to Sitrad
+# • Stops and disables sitrad.service
+# • Stops and disables send_to_tb.timer + service
+# • Removes service files from ~/.config/systemd/user
+# • Reloads systemd and exits cleanly
+###############################################################################
+
 set -euo pipefail
 
 UNIT_DIR="$HOME/.config/systemd/user"

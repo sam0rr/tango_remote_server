@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+###############################################################################
+# install_services.sh — Install and enable Sitrad and telemetry systemd units
+# • Creates sitrad.service to launch Sitrad in headless Wine mode on login
+# • Creates send_to_tb.service to push telemetry to ThingsBoard
+# • Creates send_to_tb.timer to run the telemetry push every 30 seconds
+# • Automatically reloads systemd and enables the services
+###############################################################################
+
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 UNIT_DIR="$HOME/.config/systemd/user"
 mkdir -p "$UNIT_DIR"
@@ -33,6 +41,7 @@ cat > "$UNIT_DIR/send_to_tb.service" <<EOF
 Description=Send telemetry to ThingsBoard
 
 [Service]
+Description=Python script to send telemetry to ThingsBoard
 Type=oneshot
 WorkingDirectory=$BASEDIR/send_to_tb
 ExecStart=$SEND_SCRIPT
