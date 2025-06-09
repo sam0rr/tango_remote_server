@@ -1,24 +1,46 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Base directory of the project
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# User systemd unit directory
 UNIT_DIR="$HOME/.config/systemd/user"
 mkdir -p "$UNIT_DIR"
 
-# --- Setup Sitrad Service ---
-SITRAD_SCRIPT="$BASEDIR/sitrad/setup_sitrad.sh"
-cat > "$UNIT_DIR/sitrad.service" <<EOF
+# --- 1) Headless X session service (Xvfb + Openbox) ---
+cat > "$UNIT_DIR/sitrad-display.service" <<EOF
 [Unit]
-Description=Run Sitrad 4.13 on boot and restart if it crashes
+Description=Headless X session for Sitrad
 After=network.target
 
 [Service]
-Type=idle
+Type=simple
+# Launch Xvfb and a minimal window manager (Openbox) on display :1
+action=/usr/bin/env bash -c "nohup Xvfb :1 -screen 0 1024x768x16 -ac >/dev/null 2>&1 & sleep 1; nohup openbox --display :1 >/dev/null 2>&1 &"
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+EOF
+
+# --- 2) Sitrad application service (Wine + Ctrl+L) ---
+SITRAD_SCRIPT="$BASEDIR/sitrad/setup_sitrad.sh"
+cat > "$UNIT_DIR/sitrad-app.service" <<EOF
+[Unit]
+Description=Launch Sitrad 4.13 and auto Ctrl+L
+After=sitrad-display.service
+Wants=sitrad-display.service
+
+[Service]
+Type=simple
 Environment=DISPLAY=:1
 Environment=WINEDEBUG=-all
+# Restart when the application crashes
 Restart=always
 RestartSec=3
 
+# Run from the project's sitrad directory
 WorkingDirectory=$BASEDIR/sitrad
 ExecStart=$SITRAD_SCRIPT
 
@@ -26,7 +48,7 @@ ExecStart=$SITRAD_SCRIPT
 WantedBy=default.target
 EOF
 
-# --- Setup send_to_tb Service + Timer ---
+# --- 3) Telemetry service + timer ---
 SEND_SCRIPT="$BASEDIR/send_to_tb/main.py"
 cat > "$UNIT_DIR/send_to_tb.service" <<EOF
 [Unit]
@@ -44,7 +66,7 @@ cat > "$UNIT_DIR/send_to_tb.timer" <<EOF
 Description=Run send_to_tb.service every 30 seconds
 
 [Timer]
-OnBootSec=10
+OnBootSec=10s
 OnUnitActiveSec=30s
 AccuracySec=1s
 Persistent=true
@@ -53,15 +75,20 @@ Persistent=true
 WantedBy=timers.target
 EOF
 
-# --- Enable Services ---
-echo "Reloading systemd and enabling services..."
+# --- Enable and start services ---
+echo "Reloading user systemd units..."
 systemctl --user daemon-reload
-systemctl --user enable --now sitrad.service
+# Enable and start services/timers
+echo "Enabling sitrad-display.service and sitrad-app.service..."
+systemctl --user enable --now sitrad-display.service
+systemctl --user enable --now sitrad-app.service
 systemctl --user enable --now send_to_tb.timer
 
 echo -e "\nServices installed and running:"
-echo "   - sitrad.service      (restart on crash, headless Xvfb via setup_sitrad.sh)"
-echo "   - send_to_tb.timer    (runs every 30s)"
+echo "  - sitrad-display.service  (Xvfb + Openbox)"
+echo "  - sitrad-app.service      (Wine + auto Ctrl+L)"
+echo "  - send_to_tb.timer        (runs every 30s)"
 echo -e "\nTo monitor:"
-echo "   journalctl --user -u sitrad.service -f"
-echo "   journalctl --user -u send_to_tb.service -n 50"
+echo "  journalctl --user -u sitrad-display.service -f"
+echo "  journalctl --user -u sitrad-app.service -f"
+echo "  journalctl --user -u send_to_tb.service -n 50"
