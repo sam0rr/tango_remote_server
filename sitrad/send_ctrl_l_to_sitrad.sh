@@ -10,10 +10,10 @@ echo "Searching for 'Sitrad Local'…"
 WID=$(xdotool search --onlyvisible --name "Sitrad Local" 2>/dev/null | head -n1)
 
 if [[ -z "$WID" ]]; then
-  echo "❌ Window not found (try: xdotool search --name Sitrad)"
+  echo "Window not found (try: xdotool search --name Sitrad)"
   exit 1
 fi
-echo "✅ Found window ID: $WID"
+echo "Found window ID: $WID"
 
 # ── 2) Focus it ────────────────────────────────────────────────────────────────
 xdotool windowmap    "$WID"
