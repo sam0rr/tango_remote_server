@@ -28,7 +28,8 @@ class ThingsBoardClient(HttpClient):
         )
         self._log_config(post_url, max_retry, initial_delay, timeout, min_batch_size_to_split)
 
-    def _log_config(self, url, retry, delay, timeout, split):
+    @staticmethod
+    def _log_config(url, retry, delay, timeout, split):
         """
         Log ThingsBoard client configuration.
         """
