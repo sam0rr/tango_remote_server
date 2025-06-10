@@ -9,33 +9,36 @@ This project collects data from an industrial device (e.g., TC-900 from Full Gau
 ## Project Structure
 
 ```
-scripts/
-├── venv/                       ← Python virtual environment
-├── send_to_tb/                 ← Main Python package
-│   ├── __init__.py
-│   ├── .env
-│   ├── main.py
+tango_remote_server/
+├── send_to_tb/
+│   ├── main.py                     ← Entrypoint
+│   ├── .env                        ← Environment config
 │   ├── clients/
-│   │   ├── __init__.py
 │   │   ├── http_client.py
 │   │   └── thingsboard_client.py
 │   ├── fetchers/
-│   │   ├── __init__.py
 │   │   ├── data_fetcher.py
 │   │   └── sitrad_data_fetcher.py
 │   ├── launcher/
-│   │   ├── __init__.py
 │   │   └── send_launcher.py
-│   └── utils/
-│       ├── __init__.py
-│       ├── log_cleaner.py        ← automatically purge old log files
-│       └── db_cleaner.py         ← delete sent rows from the database
+│   ├── utils/
+│   │   ├── config.py
+│   │   ├── db/
+│   │   │   ├── db_cleaner.py       ← Deletes rows after successful sends
+│   │   │   └── db_connect.py       ← get_sqlite_connection() helper
+│   │   ├── log/
+│   │   │   ├── log_setup.py        ← Initializes logging from .env
+│   │   │   └── log_cleaner.py      ← Deletes old logs
+│   │   └── __init__.py
+│   └── __init__.py
 ├── sitrad/
-│   ├── setup_sitrad.sh           ← Launch Wine + Sitrad PRO (headless/Xvfb support)
-│   └── send_ctrl_l_to_sitrad.sh  ← Auto‐send “Ctrl+L” to Sitrad window (headless)
+│   ├── setup_sitrad.sh             ← Launch Wine + Sitrad under Xvfb
+│   └── send_ctrl_l_to_sitrad.sh    ← Sends Ctrl+L to window after load
 ├── setup_bash/
-│   ├── setup_services.sh         ← Install systemd services (Sitrad + send_to_tb)
-│   └── kill_services.sh          ← Uninstall the systemd services
+│   ├── setup_services.sh           ← Creates systemd services
+│   └── kill_services.sh            ← Removes systemd services
+├── .gitignore
+└── README.md                       ← You're here
 ```
 
 ---
@@ -88,7 +91,7 @@ In `scripts/send_to_tb/.env`:
 ###############################################################################
 # ▶︎ Credentials
 ###############################################################################
-# ThingsBoard device token
+# ThingsBoard device token (unique par device)
 DEVICE_TOKEN=UuGa6uD0YW31ElEjxmEo
 
 ###############################################################################
@@ -96,24 +99,49 @@ DEVICE_TOKEN=UuGa6uD0YW31ElEjxmEo
 ###############################################################################
 # Path to the SQLite database (via Wine)
 DB_PATH=~/.wine/drive_c/ProgramData/Full Gauge/Sitrad/data.db
-# Name of the log file (will be created under send_to_tb/logs/)
+# Name of the log file (created under logs/)
 LOG_FILE=sitrad_push.log
 
 ###############################################################################
-# ▶︎ Behaviour
+# ▶︎ Telemetry sending behavior
 ###############################################################################
-# Throttle: maximum messages per second
+# Max number of messages per second allowed (ThingsBoard rate limit)
 MAX_MSGS_PER_SEC=10
-# Maximum retry attempts (with split & backoff)
+# Max retry attempts before giving up (resilient split logic included)
 MAX_RETRY=5
-# Initial backoff in milliseconds
+# Initial backoff (in milliseconds) before first retry
 INITIAL_DELAY_MS=200
-# Log level: DEBUG | INFO | WARNING | ERROR
-LOG_LEVEL=DEBUG
-# Minimum valid timestamp (e.g., Jan 1 2000 UTC in milliseconds)
+# Timeout (in seconds) for each HTTP POST request
+POST_TIMEOUT=10
+# Enforce a fixed time window (in seconds) between each batch
+BATCH_WINDOW_SEC=1.0
+# Minimum size for batch splitting (disable split with large value like 9999)
+MIN_BATCH_SIZE_TO_SPLIT=2
+
+###############################################################################
+# ▶︎ Filtering / Data cleaning
+###############################################################################
+# Ignore any row with a timestamp older than this value (UTC, in ms) -- 2000-01-01 UTC
 MIN_VALID_TS_MS=946684800000
-# Auto-delete logs older than X days
-PURGE_LOG_DAYS=2
+# Excel timestamp offset for sensors using Excel serial dates
+EXCEL_TS_OFFSET=25569
+# Sqlite timeout in sec
+SQLITE_TIMEOUT_SEC=30
+
+###############################################################################
+# ▶︎ Table names (optional override for flexibility)
+###############################################################################
+TELEMETRY_TABLE=tc900log
+ALARM_TABLE=rel_alarmes
+
+###############################################################################
+# ▶︎ Logging and debug
+###############################################################################
+# DEBUG | INFO | WARNING | ERROR
+LOG_LEVEL=DEBUG
+# Delete logs older than X days automatically
+PURGE_LOG_DAYS=1
+
 ```
 
 Notes:

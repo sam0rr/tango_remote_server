@@ -3,6 +3,7 @@
 http_client.py — Generic HTTP client with back-off/retry logic, cleanly modularized.
 """
 import time
+import os
 import logging
 import requests
 
@@ -16,10 +17,13 @@ class HttpClient:
       - send_resilient(): send batches, splitting on failure.
     """
 
-    def __init__(self, post_url: str, max_retry: int = 5, initial_delay: float = 0.2):
+    def __init__(self, post_url: str, max_retry: int = 5, initial_delay: float = 0.2,
+                 timeout: int = 10, min_batch_size_to_split: int = 2):
         self.post_url = post_url
         self.max_retry = max_retry
         self.initial_delay = initial_delay
+        self.timeout = timeout
+        self.min_batch_size_to_split = min_batch_size_to_split
 
     def _attempt_post(self, payload: dict) -> requests.Response | None:
         """Attempt a single POST request."""
@@ -28,7 +32,7 @@ class HttpClient:
                 self.post_url,
                 headers={"Content-Type": "application/json"},
                 json=payload,
-                timeout=10
+                timeout=self.timeout
             )
         except Exception as exc:
             log.warning("Network exception: %s", exc)
@@ -116,7 +120,7 @@ class HttpClient:
         if len(batch) == 1:
             return self._handle_failed_single(batch[0])
 
-        if len(batch) <= 1:
+        if len(batch) < self.min_batch_size_to_split:
             log.error("Cannot split batch further. Dropping.")
             return 0
 

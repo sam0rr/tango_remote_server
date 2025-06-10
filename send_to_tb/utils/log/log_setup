@@ -1,0 +1,33 @@
+# utils/log_setup.py
+
+import os
+import sys
+import logging
+from pathlib import Path
+
+def setup_logging(pkg_dir: Path) -> logging.Logger:
+    """
+    Configure logging with environment-defined level and output path.
+    Logs are written to logs/<LOG_FILE> and also streamed to console.
+
+    Environment variables:
+      - LOG_LEVEL  : logging level (DEBUG, INFO, WARNING, ERROR)
+      - LOG_FILE   : name of the log file (default: sitrad_push.log)
+    """
+    level_name = os.getenv("LOG_LEVEL", "INFO").upper()
+    level = getattr(logging, level_name, logging.INFO)
+    log_filename = os.getenv("LOG_FILE", "sitrad_push.log")
+
+    logs_dir = pkg_dir / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    log_path = logs_dir / log_filename
+
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            logging.FileHandler(log_path, mode="a")
+        ]
+    )
+    return logging.getLogger("send_to_thingsboard")

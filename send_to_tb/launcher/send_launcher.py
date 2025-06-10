@@ -5,17 +5,14 @@ Orchestrates:
   1) fetch_and_prepare() from DataFetcher (returns list of payloads with "rowid")
   2) chunk payloads by max_per_sec
   3) send each one via HttpClient.send_resilient()
-  4) for each mini-batch, collect ALL rowids and delete them in bulk from tc900log
+  4) for each mini-batch, collect ALL rowids and delete them in bulk
   5) enforce 1s delay between batches
-  6) at the end, clear all rows from rel_alarmes
+  6) at the end, clear all rows from the alarm table
 """
 
 import time
 import logging
-from utils.db_cleaner import delete_rows, delete_all_rows
-
-TELEMETRY_TABLE = "tc900log"
-ALARM_TABLE     = "rel_alarmes"
+from utils.db.db_cleaner import delete_rows, delete_all_rows
 
 log = logging.getLogger("send_launcher")
 
@@ -28,15 +25,17 @@ class SendToLauncher:
     After that, the alarms table is cleared if it contains any rows.
     """
 
-    def __init__(self, fetcher, client, max_per_sec: int):
+    def __init__(self, fetcher, client, max_per_sec: int, batch_window_sec: float = 1.0):
         """
         :param fetcher:     Instance of DataFetcher (fetcher.db_path must exist)
         :param client:      Instance of HttpClient (ThingsBoardClient)
         :param max_per_sec: Max number of messages to send per second
+        :param batch_window_sec: Time window in seconds between batch sends
         """
         self.fetcher = fetcher
         self.client = client
         self.max_per_sec = max_per_sec
+        self.batch_window_sec = batch_window_sec
 
     def _fetch_payloads(self) -> list[dict]:
         """
@@ -49,7 +48,7 @@ class SendToLauncher:
     def _send_in_chunks(self, payloads: list[dict]) -> None:
         """
         Loop through payloads in chunks of max_per_sec, call _send_fine_grained_batch,
-        then apply a 1 second delay before processing the next chunk.
+        then apply a delay before processing the next chunk.
         """
         total = len(payloads)
         log.info("Processing %d payload(s).", total)
@@ -99,17 +98,22 @@ class SendToLauncher:
                 log.warning("Failed to send single payload: %s", e)
 
         if rowids_to_delete:
-            delete_rows(self.fetcher.db_path, TELEMETRY_TABLE, rowids_to_delete)
+            delete_rows(
+                db_path=self.fetcher.db_path,
+                table_name=self.fetcher.tables["telemetry"],
+                rowids=rowids_to_delete,
+                timeout=self.fetcher.timeout
+            )
 
         return sent_total
 
     def _enforce_rate_limit(self, window_start: float) -> float:
         """
-        Sleep the remaining time to enforce a minimum 1s window per batch.
+        Sleep the remaining time to enforce a minimum batch window.
         """
         elapsed = time.monotonic() - window_start
-        if elapsed < 1.0:
-            time.sleep(1.0 - elapsed)
+        if elapsed < self.batch_window_sec:
+            time.sleep(self.batch_window_sec - elapsed)
         return time.monotonic()
 
     def start(self):
@@ -117,9 +121,13 @@ class SendToLauncher:
         Entry point:
           1) Fetch all payloads (list of dicts with "rowid", "ts", "values").
           2) Chunk them by max_per_sec and call _send_fine_grained_batch().
-          3) After all telemetry rows are sent & deleted, clear the rel_alarmes table.
+          3) After all telemetry rows are sent & deleted, clear the alarm table.
         """
         payloads = self._fetch_payloads()
         self._send_in_chunks(payloads)
 
-        delete_all_rows(self.fetcher.db_path, ALARM_TABLE)
+        delete_all_rows(
+            db_path=self.fetcher.db_path,
+            table_name=self.fetcher.tables["alarm"],
+            timeout=self.fetcher.timeout
+        )
