@@ -291,7 +291,7 @@ If you later connect a physical monitor and want Sitrad to appear on `:0` instea
   - Sends each payload individually (`send_resilient([payload])`).  
   - Collects rowids of successful sends into a list.  
   - Calls `delete_rows(db_path, rowids_to_delete)` once per batch.  
-- `_enforce_rate_limit(window_start)`: Sleeps the remaining time so that each chunk spans of at least `BATCH_WINDOW_SEC`second.
+- `_enforce_rate_limit(window_start)`: Sleeps the remaining time so that each chunk spans of at least `BATCH_WINDOW_SEC` second.
 
 ---
 
