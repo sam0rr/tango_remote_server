@@ -108,8 +108,11 @@ map_com1() {
 
 # ── Add shell alias to launch Sitrad manually ────────────────────────────────
 add_alias() {
-    local alias_cmd="alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && DISPLAY=:1 wine ./\"$EXE_NAME\" && popd >/dev/null'"
-    grep -Fxq "$alias_cmd" "$BASHRC" || { log "Adding alias to ~/.bashrc"; echo "$alias_cmd" >> "$BASHRC"; }
+    # Avoid scanning entire .bashrc on each run
+    if ! grep -Fq 'alias sitrad4.13=' "$BASHRC"; then
+        log "Adding alias to ~/.bashrc"
+        echo "alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && DISPLAY=:1 wine ./\"$EXE_NAME\" && popd >/dev/null'" >> "$BASHRC"
+    fi
 }
 
 # ── Launch Sitrad via Wine on DISPLAY=:1 ──────────────────────────────────────
@@ -125,7 +128,9 @@ launch_sitrad() {
 trigger_ctrl_l() {
     log "Waiting for Sitrad window…"
     local wid
-    until wid=$(xdotool search --name "Sitrad Local" 2>/dev/null | head -n1); do sleep 0.5; done
+    until wid=$(xdotool search --name "Sitrad Local" 2>/dev/null | head -n1); do
+        sleep 0.5
+    done
     log "Window $wid detected — waiting 30 s"
     sleep 30
     if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
