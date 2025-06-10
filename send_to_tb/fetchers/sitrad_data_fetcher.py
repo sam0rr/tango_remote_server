@@ -33,13 +33,22 @@ class SitradDataFetcher(DataFetcher):
          ORDER BY rowid
     """
 
-    def __init__(self, db_path: str, min_ts: int, excel_offset: float, timeout: float, tables: dict):
+    def __init__(
+        self,
+        db_path: str,
+        min_ts: int,
+        excel_offset: float,
+        timeout: float,
+        tables: dict
+    ):
         """
-        :param db_path: Path to the SQLite database file (tc900log.sqlite).
+        Initialize with database path and cleaning parameters.
+
+        :param db_path: Path to the SQLite database file.
         :param min_ts: Minimal valid timestamp in ms.
-        :param excel_offset: Excel origin date offset (default: 25569).
-        :param timeout: Timeout to use with sqlite3.connect.
-        :param tables: Dict of table names, e.g., {"telemetry": "tc900log", "alarm": "rel_alarmes"}
+        :param excel_offset: Excel-origin date offset for timestamp conversion.
+        :param timeout: SQLite connection timeout in seconds.
+        :param tables: Dictionary of table names (e.g., {'telemetry': 'tc900log'}).
         """
         super().__init__()
         self.db_path = db_path
@@ -50,8 +59,8 @@ class SitradDataFetcher(DataFetcher):
 
     def fetch_rows(self) -> list[sqlite3.Row]:
         """
-        Open the database in WAL mode, fetch all rows from the telemetry table,
-        then close the connection.
+        Open the SQLite database and fetch all rows from the telemetry table.
+        Returns a list of sqlite3.Row objects or an empty list on error.
         """
         if not os.path.isfile(self.db_path):
             log.error("Database not found: %s", self.db_path)
@@ -77,16 +86,22 @@ class SitradDataFetcher(DataFetcher):
         return rows
 
     def _is_valid_timestamp(self, ts: int) -> bool:
+        """
+        Check if the timestamp meets the minimum valid threshold.
+
+        :param ts: Timestamp in milliseconds.
+        :return: True if ts >= self.min_ts, False otherwise.
+        """
         return ts >= self.min_ts
 
-    def _clean_value(self, value) -> float | int | None:
-        if value is None:
-            return None
-        if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
-            return None
-        return value
-
     def build_payload(self, row: sqlite3.Row) -> dict | None:
+        """
+        Convert a database row into a telemetry payload dict.
+        Skips rows with invalid timestamps.
+
+        :param row: sqlite3.Row from the telemetry query.
+        :return: A dict {'rowid', 'ts', 'values'} or None to skip.
+        """
         ts = row["ts_ms"]
         if not self._is_valid_timestamp(ts):
             return None
@@ -108,3 +123,17 @@ class SitradDataFetcher(DataFetcher):
             "ts": ts,
             "values": filtered
         }
+
+    @staticmethod
+    def _clean_value(value) -> float | int | None:
+        """
+        Clean numeric values, converting NaN or infinite floats to None.
+
+        :param value: Numeric or None.
+        :return: Cleaned number or None.
+        """
+        if value is None:
+            return None
+        if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+            return None
+        return value
