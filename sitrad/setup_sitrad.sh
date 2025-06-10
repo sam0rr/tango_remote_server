@@ -118,6 +118,9 @@ add_alias() {
     fi
 
     echo "$correct_alias" >> "$BASHRC"
+
+    eval "$correct_alias"
+    log "Alias sitrad4.13 is now available in this session"
 }
 
 # ── Launch Sitrad via Wine on DISPLAY=:1 ──────────────────────────────────────
