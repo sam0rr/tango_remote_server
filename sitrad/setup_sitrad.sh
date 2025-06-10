@@ -108,11 +108,16 @@ map_com1() {
 
 # ── Add shell alias to launch Sitrad manually ────────────────────────────────
 add_alias() {
-    # Avoid scanning entire .bashrc on each run
-    if ! grep -Fq 'alias sitrad4.13=' "$BASHRC"; then
-        log "Adding alias to ~/.bashrc"
-        echo "alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && DISPLAY=:1 wine ./\"$EXE_NAME\" && popd >/dev/null'" >> "$BASHRC"
+    local correct_alias="alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && wine ./\"$EXE_NAME\" && popd >/dev/null'"
+
+    if grep -Fq 'alias sitrad4.13=' "$BASHRC"; then
+        log "Updating existing alias sitrad4.13 in ~/.bashrc"
+        sed -i '/alias sitrad4\.13=/d' "$BASHRC"
+    else
+        log "Adding alias sitrad4.13 to ~/.bashrc"
     fi
+
+    echo "$correct_alias" >> "$BASHRC"
 }
 
 # ── Launch Sitrad via Wine on DISPLAY=:1 ──────────────────────────────────────
