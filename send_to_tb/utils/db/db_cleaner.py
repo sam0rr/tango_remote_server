@@ -1,4 +1,4 @@
-# utils/db_cleaner.py
+# utils/db/db_cleaner.py
 
 import logging
 from typing import List, Tuple

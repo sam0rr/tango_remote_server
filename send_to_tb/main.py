@@ -32,45 +32,45 @@ def build_launcher(cfg: Config) -> SendToLauncher:
 
     fetcher = SitradDataFetcher(
         db_path=cfg.db_path,
-        min_ts=cfg.min_valid_ts,
-        excel_offset=cfg.excel_offset,
-        timeout=cfg.sqlite_timeout,
+        min_ts=cfg.min_valid_ts_ms,
+        excel_offset=cfg.excel_ts_offset,
+        timeout=cfg.sqlite_timeout_sec,
         tables=tables
     )
 
     client = ThingsBoardClient(
         device_token=cfg.device_token,
         max_retry=cfg.max_retry,
-        initial_delay=cfg.initial_delay,
-        timeout=cfg.timeout,
+        initial_delay=cfg.initial_delay_sec,
+        timeout=cfg.post_timeout_sec,
         min_batch_size_to_split=cfg.min_batch_size_to_split
     )
 
     return SendToLauncher(
         fetcher,
         client,
-        max_per_sec=cfg.max_per_sec,
+        max_per_sec=cfg.max_msgs_per_sec,
         batch_window_sec=cfg.batch_window_sec
     )
 
 def main():
     """
-    Entrypoint: load .env, print debug info, configure logger, purge old logs,
+    Entrypoint: load .env, configure logger, purge old logs,
     then start the data-push loop to ThingsBoard.
     """
     load_dotenv(dotenv_path)
-    log = setup_logging(pkg_dir)
-
-    purge_days = int(os.getenv("PURGE_LOG_DAYS", "2"))
-    purge_old_logs(logs_path, max_age_days=purge_days)
 
     try:
         cfg = Config.from_env()
+        log = setup_logging(pkg_dir, level=cfg.log_level)
+        purge_old_logs(logs_path, max_age_days=cfg.purge_log_days)
+
         launcher = build_launcher(cfg)
         log.info("Starting send_to_thingsboard...")
         launcher.start()
+
     except Exception:
-        log.exception("An error occurred during execution:")
+        logging.exception("An error occurred during execution:")
         sys.exit(1)
 
 if __name__ == "__main__":

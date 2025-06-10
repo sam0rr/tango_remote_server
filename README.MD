@@ -129,13 +129,13 @@ EXCEL_TS_OFFSET=25569
 SQLITE_TIMEOUT_SEC=30
 
 ###############################################################################
-# ▶︎ Table names (optional override for flexibility)
+# ▶︎ Table names
 ###############################################################################
 TELEMETRY_TABLE=tc900log
 ALARM_TABLE=rel_alarmes
 
 ###############################################################################
-# ▶︎ Logging and debug
+# ▶︎ Logging
 ###############################################################################
 # DEBUG | INFO | WARNING | ERROR
 LOG_LEVEL=DEBUG
@@ -259,7 +259,7 @@ If you later connect a physical monitor and want Sitrad to appear on `:0` instea
 
 ### `main.py`
 
-- Loads `.env` variables.  
+- Loads .env → Config.from_env() (validates, fail-fast).
 - Instantiates `SitradDataFetcher`.  
 - Instantiates `ThingsBoardClient`.  
 - Launches `SendToLauncher`.
@@ -291,7 +291,7 @@ If you later connect a physical monitor and want Sitrad to appear on `:0` instea
   - Sends each payload individually (`send_resilient([payload])`).  
   - Collects rowids of successful sends into a list.  
   - Calls `delete_rows(db_path, rowids_to_delete)` once per batch.  
-- `_enforce_rate_limit(window_start)`: Sleeps the remaining time so that each chunk spans at least 1 second.
+- `_enforce_rate_limit(window_start)`: Sleeps the remaining time so that each chunk spans of at least `BATCH_WINDOW_SEC`second.
 
 ---
 

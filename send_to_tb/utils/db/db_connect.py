@@ -1,3 +1,5 @@
+# utils/db/db_connect.py
+
 import sqlite3
 
 def get_sqlite_connection(db_path: str, timeout: float = 30.0) -> sqlite3.Connection:
