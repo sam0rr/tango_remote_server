@@ -70,8 +70,6 @@ class SitradDataFetcher(DataFetcher):
         try:
             with get_sqlite_connection(self.db_path, self.timeout) as conn:
                 conn.row_factory = sqlite3.Row
-                conn.execute("PRAGMA journal_mode=WAL;")
-                conn.execute("PRAGMA synchronous=NORMAL;")
                 cursor = conn.cursor()
 
                 telemetry_table = self.tables.get("telemetry", "tc900log")
