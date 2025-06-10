@@ -3,7 +3,7 @@
 http_client.py — Generic HTTP client with back-off/retry logic, cleanly modularized.
 """
 import time
-import os
+import random
 import logging
 import requests
 
@@ -25,7 +25,7 @@ class HttpClient:
         self.timeout = timeout
         self.min_batch_size_to_split = min_batch_size_to_split
 
-    def _attempt_post(self, payload: dict) -> requests.Response | None:
+    def _attempt_post(self, payload: list[dict]) -> requests.Response | None:
         """Attempt a single POST request."""
         try:
             return requests.post(
@@ -37,10 +37,6 @@ class HttpClient:
         except Exception as exc:
             log.warning("Network exception: %s", exc)
             return None
-
-    def _should_retry(self, status_code: int) -> bool:
-        """Return True if status_code is retriable (e.g. 429 or 500)."""
-        return status_code in (429, 500)
 
     def _handle_retry_delay(
         self, response: requests.Response, delay: float, attempt: int
@@ -57,19 +53,14 @@ class HttpClient:
             response.status_code, pause, attempt, self.max_retry
         )
         time.sleep(pause)
-        return delay * 2
+        
+        new_delay = delay * 2
+        new_delay += random.uniform(0, new_delay / 2)
+        return new_delay
 
-    def _log_and_drop(self, status_code: int, response: requests.Response) -> bool:
-        """Log specific error and stop retrying."""
-        if status_code == 401:
-            log.error("Unauthorized (401): check DEVICE_TOKEN or permissions.")
-        else:
-            log.error("HTTP %d error: %s", status_code, response.text.strip())
-        return False
-
-    def post_json_with_retry(self, payload: dict) -> bool:
+    def post_json_with_retry(self, payload: list[dict]) -> bool:
         """
-        Send a single JSON payload with retry/back-off.
+        Send a single JSON payload (list of dicts) with retry/back-off.
         Returns True on success, False on failure.
         """
         delay = self.initial_delay
@@ -94,17 +85,6 @@ class HttpClient:
         log.error("Exhausted retries for payload. Dropping.")
         return False
 
-    def _split_batch(self, batch: list[dict]) -> tuple[list[dict], list[dict]]:
-        """Split batch in two halves."""
-        mid = len(batch) // 2
-        return batch[:mid], batch[mid:]
-
-    def _handle_failed_single(self, payload: dict) -> int:
-        """Log dropped payload with RowId and return 0."""
-        row_id = payload.get("values", {}).get("RowId", "?")
-        log.error("Dropping RowId=%s", row_id)
-        return 0
-
     def send_resilient(self, batch: list[dict]) -> int:
         """
         Attempt to send the full batch.
@@ -126,3 +106,30 @@ class HttpClient:
 
         left, right = self._split_batch(batch)
         return self.send_resilient(left) + self.send_resilient(right)
+
+    @staticmethod
+    def _should_retry(status_code: int) -> bool:
+        """Return True if status_code is retriable (e.g. 429, 500, 502-504)."""
+        return status_code in (429, 500, 502, 503, 504)
+
+    @staticmethod
+    def _log_and_drop(status_code: int, response: requests.Response) -> bool:
+        """Log specific error and stop retrying."""
+        if status_code == 401:
+            log.error("Unauthorized (401): check DEVICE_TOKEN or permissions.")
+        else:
+            log.error("HTTP %d error: %s", status_code, response.text.strip())
+        return False
+
+    @staticmethod
+    def _split_batch(batch: list[dict]) -> tuple[list[dict], list[dict]]:
+        """Split batch in two halves."""
+        mid = len(batch) // 2
+        return batch[:mid], batch[mid:]
+
+    @staticmethod
+    def _handle_failed_single(payload: dict) -> int:
+        """Log dropped payload with RowId and return 0."""
+        row_id = payload.get("values", {}).get("RowId", "?")
+        log.error("Dropping RowId=%s", row_id)
+        return 0
