@@ -42,7 +42,6 @@ cat > "$UNIT_DIR/send_to_tb.service" <<EOF
 Description=Send telemetry to ThingsBoard
 
 [Service]
-Description=Python script to send telemetry to ThingsBoard
 Type=oneshot
 WorkingDirectory=$BASEDIR/send_to_tb
 ExecStart=$SEND_SCRIPT
