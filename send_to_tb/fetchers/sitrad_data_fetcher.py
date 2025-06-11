@@ -25,8 +25,8 @@ class SitradDataFetcher(DataFetcher):
 
     SQL_QUERY_TEMPLATE = """
         SELECT rowid,
-               ROUND(Temp1/10.0, 1) AS t1,
-               ROUND(Temp2/10.0, 1) AS t2,
+               ROUND(Temp1/10.0, 2) AS t1,
+               ROUND(Temp2/10.0, 2) AS t2,
                defr, fans, refr,
                dig1, dig2,
                data AS excel_serial
@@ -38,7 +38,6 @@ class SitradDataFetcher(DataFetcher):
         self,
         db_path: str,
         min_ts: int,
-        excel_offset: float,
         timeout: float,
         tables: dict
     ):
@@ -47,14 +46,12 @@ class SitradDataFetcher(DataFetcher):
 
         :param db_path: Path to the SQLite database file.
         :param min_ts: Minimal valid timestamp in ms.
-        :param excel_offset: Excel-origin date offset (no longer used).
         :param timeout: SQLite connection timeout in seconds.
         :param tables: Dictionary of table names (e.g., {'telemetry': 'tc900log'}).
         """
         super().__init__()
         self.db_path = db_path
         self.min_ts = min_ts
-        self.excel_offset = excel_offset  # unused, kept for backward compatibility
         self.timeout = timeout
         self.tables = tables
 
@@ -96,20 +93,7 @@ class SitradDataFetcher(DataFetcher):
         :param row: sqlite3.Row from the telemetry query.
         :return: A dict {'rowid', 'ts', 'values'} or None to skip.
         """
-        # Excel serial date (float days since 1899-12-30)
-        serial = row["excel_serial"]
-        # Base date for Excel (no timezone)
-        base_naive = datetime(1899, 12, 30)
-        # Create naive local datetime
-        dt_local_naive = base_naive + timedelta(days=serial)
-        # Detect system local timezone
-        local_tz = datetime.now().astimezone().tzinfo
-        # Attach local timezone
-        dt_local = dt_local_naive.replace(tzinfo=local_tz)
-        # Convert to UTC
-        dt_utc = dt_local.astimezone(timezone.utc)
-        ts = int(dt_utc.timestamp() * 1000)
-
+        ts = self._excel_serial_to_utc_ms(row["excel_serial"])
         if not self._is_valid_timestamp(ts):
             return None
 
@@ -139,3 +123,16 @@ class SitradDataFetcher(DataFetcher):
         if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
             return None
         return value
+
+    @staticmethod
+    def _excel_serial_to_utc_ms(serial: float) -> int:
+        """
+        Convert an Excel serial date (days since 1899-12-30) to a UTC timestamp in ms.
+        """
+
+        base_naive = datetime(1899, 12, 30)
+        dt_local_naive = base_naive + timedelta(days=serial)
+        local_tz = datetime.now().astimezone().tzinfo
+        dt_local = dt_local_naive.replace(tzinfo=local_tz)
+        dt_utc = dt_local.astimezone(timezone.utc)
+        return int(dt_utc.timestamp() * 1000)
