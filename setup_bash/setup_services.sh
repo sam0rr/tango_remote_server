@@ -41,7 +41,7 @@ Section "Screen"
 EndSection
 EOF
 
-echo "✓ /etc/X11/xorg.conf.d/10-dummy.conf created"
+echo "/etc/X11/xorg.conf.d/10-dummy.conf created"
 
 # 2) Prepare user systemd directory
 mkdir -p "$UNIT_DIR"
