@@ -30,7 +30,6 @@ class Config:
 
     # ▶︎ Filtering / Data cleaning
     min_valid_ts_ms: int
-    excel_ts_offset: float
     sqlite_timeout_sec: int
 
     # ▶︎ Table names
@@ -99,7 +98,6 @@ class Config:
         """
         return {
             "min_valid_ts_ms": int(get("MIN_VALID_TS_MS", "946684800000")),
-            "excel_ts_offset": float(get("EXCEL_TS_OFFSET", "25569")),
             "sqlite_timeout_sec": int(get("SQLITE_TIMEOUT_SEC", "30")),
         }
 

@@ -143,8 +143,6 @@ MIN_BATCH_SIZE_TO_SPLIT=2
 ###############################################################################
 # Ignore any row with a timestamp older than this value (UTC, in ms) -- 2000-01-01 UTC
 MIN_VALID_TS_MS=946684800000
-# Excel timestamp offset for sensors using Excel serial dates
-EXCEL_TS_OFFSET=25569
 # Sqlite timeout in sec
 SQLITE_TIMEOUT_SEC=30
 
