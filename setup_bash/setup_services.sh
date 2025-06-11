@@ -55,18 +55,14 @@ After=network.target
 [Service]
 Type=simple
 Environment=DISPLAY=:1
-ExecStart=/bin/bash -c '
-  rm -f /tmp/.X1-lock
-  /usr/bin/Xorg :1 -config /etc/X11/xorg.conf.d/10-dummy.conf -nolisten tcp &
-  while ! xdpyinfo -display :1 > /dev/null 2>&1; do sleep 0.5; done
-  exec /usr/bin/openbox --display :1
-'
+ExecStart=/bin/sh -c 'rm -f /tmp/.X1-lock && /usr/bin/Xorg :1 -config /etc/X11/xorg.conf.d/10-dummy.conf -nolisten tcp & while ! xdpyinfo -display :1 > /dev/null 2>&1; do sleep 0.5; done; exec /usr/bin/openbox --display :1'
 Restart=always
 RestartSec=5
 
 [Install]
 WantedBy=default.target
 EOF
+)"
 
 # 4) Create sitrad.service (depends on display)
 SITRAD_SCRIPT="$BASEDIR/sitrad/setup_sitrad.sh"
