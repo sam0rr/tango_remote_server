@@ -51,10 +51,7 @@ check_dependencies() {
 start_x_session() {
     log "Launching Xorg (dummy) on $DISPLAY_NUM"
     if ! pgrep -f "Xorg $DISPLAY_NUM" >/dev/null; then
-        Xorg $DISPLAY_NUM \
-            -config /etc/X11/xorg.conf.d/10-dummy.conf \
-            -nolisten tcp vt7 \
-            > "$HOME/.sitrad_logs/xorg.log" 2>&1 &
+        Xorg $DISPLAY_NUM -config /etc/X11/xorg.conf.d/10-dummy.conf -nolisten tcp vt7 &
         sleep 2
     else
         log "Xorg already running"
@@ -62,12 +59,12 @@ start_x_session() {
 
     log "Launching Openbox on $DISPLAY_NUM"
     if ! pgrep -f "openbox --display $DISPLAY_NUM" >/dev/null; then
-        openbox --display $DISPLAY_NUM \
-            > "$HOME/.sitrad_logs/openbox.log" 2>&1 &
+        openbox --display $DISPLAY_NUM &
         sleep 1
     else
         log "Openbox already running"
     fi
+
     mkdir -p "$DOS_DIR"
 }
 
