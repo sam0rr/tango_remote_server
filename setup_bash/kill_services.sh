@@ -8,11 +8,13 @@ set -euo pipefail
 #  • Stops and disables send_to_tb.timer + service
 #  • Removes service files from ~/.config/systemd/user
 #  • Deletes Xorg dummy config
-#  • Reloads systemd and disables linger
+#  • Deletes journald retention drop-in
+#  • Reloads systemd and systemd-journald, disables linger
 ###############################################################################
 
 UNIT_DIR="$HOME/.config/systemd/user"
 DUMMY_CONF="/etc/X11/xorg.conf.d/10-dummy.conf"
+RETENTION_DROPIN="/etc/systemd/journald.conf.d/00-retention.conf"
 
 echo "Uninstalling Services..."
 
@@ -26,6 +28,7 @@ systemctl --user stop display.service 2>/dev/null || true
 systemctl --user disable display.service 2>/dev/null || true
 rm -f "$UNIT_DIR/display.service"
 
+# Delete Xorg dummy configuration
 echo "Deleting Xorg dummy configuration: $DUMMY_CONF"
 sudo rm -f "$DUMMY_CONF"
 
@@ -36,26 +39,35 @@ systemctl --user disable sitrad.service 2>/dev/null || true
 rm -f "$UNIT_DIR/sitrad.service"
 
 # 3) Stop & disable send_to_tb.timer & service
-echo "Stopping and disabling send_to_tb.timer and service..."
+echo "Stopping and disabling send_to_tb.timer and send_to_tb.service..."
 systemctl --user stop send_to_tb.timer 2>/dev/null || true
 systemctl --user disable send_to_tb.timer 2>/dev/null || true
 systemctl --user stop send_to_tb.service 2>/dev/null || true
 rm -f "$UNIT_DIR/send_to_tb.service" "$UNIT_DIR/send_to_tb.timer"
 
-# 4) Reload systemd user daemon
+# 4) Remove journald retention drop-in
+if [ -f "$RETENTION_DROPIN" ]; then
+  echo "Removing journald retention drop-in: $RETENTION_DROPIN"
+  sudo rm -f "$RETENTION_DROPIN"
+  echo "Reloading systemd-journald to apply new config..."
+  sudo systemctl restart systemd-journald
+fi
+
+# 5) Reload systemd user daemon
 echo "Reloading systemd user daemon..."
 systemctl --user daemon-reload
 
-# 5) Disable linger for user
+# 6) Disable linger for user
 echo "Disabling linger for user $(whoami)..."
 sudo loginctl disable-linger "$(whoami)" || true
 
-# 6) Final summary
+# 7) Final summary
 cat <<EOF
 
 Uninstallation complete.
 Remaining user unit files in $UNIT_DIR:
   $(ls -1 "$UNIT_DIR" || echo "(none)")
+
 To verify:
   systemctl --user list-units --type=service
   systemctl --user list-timers
