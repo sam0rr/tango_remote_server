@@ -4,7 +4,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 
 ###############################################################################
 # setup_sitrad.sh — Smart, refactored launcher for Sitrad 4.13 on Raspberry Pi
-# • Starts Xorg (dummy) + Openbox for headless GUI
+# • Starts Xorg (dummy) for headless GUI
 # • Detects FTDI adapter and maps to Wine COM1
 # • Blocks COM2–COM20 to prevent Wine conflicts
 # • Adds alias sitrad4.13 to .bashrc
@@ -37,34 +37,27 @@ error_handler() { log "ERROR at line $1: $2"; exit 1; }
 # ── Check for required tools ─────────────────────────────────────────────────
 check_dependencies() {
     local missing=()
-    for cmd in wine Xorg openbox udevadm xdotool ss; do
+    for cmd in wine Xorg udevadm xdotool ss; do
         command -v "$cmd" >/dev/null || missing+=("$cmd")
     done
     if (( ${#missing[@]} )); then
         log "Missing dependencies: ${missing[*]}"
-        log "Please install: sudo apt install \${missing[*]} xserver-xorg-video-dummy"
+        log "Please install: sudo apt install ${missing[*]} xserver-xorg-video-dummy"
         exit 1
     fi
 }
 
-# ── Start headless Xorg + Openbox ─────────────────────────────────────────────
+# ── Start headless Xorg ───────────────────────────────────────────────────────
 start_x_session() {
     log "Launching Xorg (dummy) on $DISPLAY_NUM"
     if ! pgrep -f "Xorg $DISPLAY_NUM" >/dev/null; then
-        Xorg $DISPLAY_NUM -config /etc/X11/xorg.conf.d/10-dummy.conf -nolisten tcp vt7 &
+        Xorg $DISPLAY_NUM \
+            -config /etc/X11/xorg.conf.d/10-dummy.conf \
+            -nolisten tcp vt7 &
         sleep 2
     else
         log "Xorg already running"
     fi
-
-    log "Launching Openbox on $DISPLAY_NUM"
-    if ! pgrep -f "openbox" >/dev/null; then
-        openbox &
-        sleep 1
-    else
-        log "Openbox already running"
-    fi
-
     mkdir -p "$DOS_DIR"
 }
 
@@ -73,7 +66,8 @@ detect_ftdi() {
     log "Detecting FTDI adapter..."
     for dev in /dev/ttyUSB*; do
         [[ -e $dev ]] || continue
-        local vendor=$(udevadm info -q property -n "$dev" | grep -m1 '^ID_VENDOR=' | cut -d= -f2 || true)
+        local vendor
+        vendor=$(udevadm info -q property -n "$dev" | grep -m1 '^ID_VENDOR=' | cut -d= -f2 || true)
         [[ $vendor == FTDI ]] && { FTDI_DEVICE="$dev"; break; }
     done
     [[ -z ${FTDI_DEVICE:-} ]] && { log "No FTDI adapter found"; exit 1; }
