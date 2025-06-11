@@ -71,13 +71,6 @@ start_x_session() {
     mkdir -p "$DOS_DIR"
 }
 
-# ── Remove reserved COM ports (used with --unblock) ───────────────────────────
-unblock_ports() {
-    log "Removing COM2–COM20 blockers"
-    find "$DOS_DIR" -maxdepth 1 \( -type d -name 'com[2-9]' -o -name 'com1[0-9]' \) -print0 \
-        | xargs -0 -r rm -rf
-}
-
 # ── Detect FTDI adapter (USB-serial) ─────────────────────────────────────────
 detect_ftdi() {
     log "Detecting FTDI adapter..."
@@ -147,9 +140,7 @@ main() {
     log "──────────────────────────────────────────────────────"
     log "Starting setup_sitrad.sh"
     check_dependencies
-    parse_args "$@"
     start_x_session
-    $UNBLOCK && { unblock_ports; exit 0; }
     detect_ftdi
     block_ports
     map_com1
