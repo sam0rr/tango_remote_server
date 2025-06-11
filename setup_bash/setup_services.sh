@@ -3,6 +3,7 @@ set -euo pipefail
 
 ###############################################################################
 # install_services.sh — Install and enable:
+#  • journald retention policy (auto-prune old logs)
 #  • Xorg dummy driver configuration
 #  • display.service       (headless Xorg + Openbox)
 #  • sitrad.service        (Wine Sitrad under virtual display)
@@ -13,6 +14,19 @@ set -euo pipefail
 
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 UNIT_DIR="$HOME/.config/systemd/user"
+
+# 0) Create journald retention drop-in so logs auto-prune
+echo "➡ Configuring journal retention..."
+sudo mkdir -p /etc/systemd/journald.conf.d
+sudo tee /etc/systemd/journald.conf.d/00-retention.conf > /dev/null <<'EOF'
+[Journal]
+SystemMaxUse=200M
+SystemKeepFree=50M
+SystemMaxFileSize=50M
+SystemMaxFiles=5
+MaxRetentionSec=7day
+EOF
+sudo systemctl restart systemd-journald
 
 # 1) Install Xorg dummy configuration
 echo "➡ Installing Xorg dummy driver configuration..."
@@ -40,7 +54,6 @@ Section "Screen"
     EndSubSection
 EndSection
 EOF
-
 echo "/etc/X11/xorg.conf.d/10-dummy.conf created"
 
 # 2) Prepare user systemd directory
@@ -130,7 +143,8 @@ sudo loginctl enable-linger "$(whoami)"
 cat <<EOF
 
 Services installed and running:
-   - display.service      (Xorg + Openbox, virtual headless display)
+   - journald retention policy (200M / 7d)
+   - display.service      (Xorg + Openbox headless)
    - sitrad.service       (Wine Sitrad using DISPLAY=:1)
    - send_to_tb.timer     (pushes data every 30 seconds)
 
@@ -138,4 +152,5 @@ To monitor logs:
    journalctl --user -u display.service -f
    journalctl --user -u sitrad.service -f
    journalctl --user -u send_to_tb.service -n 50
+   journalctl --disk-usage
 EOF
