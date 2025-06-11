@@ -4,12 +4,12 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 
 ###############################################################################
 # setup_sitrad.sh — Smart, refactored launcher for Sitrad 4.13 on Raspberry Pi
-# • Starts Xvfb + Openbox (headless GUI)
+# • Starts Xorg (dummy) + Openbox for headless GUI
 # • Detects FTDI adapter and maps to Wine COM1
 # • Blocks COM2–COM20 to prevent Wine conflicts
-# • Adds alias sitrad4.13
+# • Adds alias sitrad4.13 to .bashrc
 # • Launches SitradLocal.exe under Wine
-# • Sends Ctrl+L to trigger Sitrad connection
+# • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh
 ###############################################################################
 
 # Ensure we are a normal user (not root)
@@ -24,74 +24,73 @@ EXE_PATH="$EXE_DIR/$EXE_NAME"
 
 DOS_DIR="$HOME/.wine/dosdevices"
 BASHRC="$HOME/.bashrc"
-DEVICE=""
-UNBLOCK=false
+DISPLAY_NUM=":1"
+export DISPLAY="$DISPLAY_NUM"
+export XAUTHORITY="$HOME/.Xauthority"
 
-# ── Logging utility ──────────────────────────────────────────────────────────
+# ── Logging utility ───────────────────────────────────────────────────────────
 log() { echo -e "$(date '+%F %T') | $*"; }
 
-# ── Error handler ────────────────────────────────────────────────────────────
+# ── Error handler ─────────────────────────────────────────────────────────────
 error_handler() { log "ERROR at line $1: $2"; exit 1; }
 
 # ── Check for required tools ─────────────────────────────────────────────────
 check_dependencies() {
     local missing=()
-    for cmd in wine Xvfb openbox udevadm xdotool; do
+    for cmd in wine Xorg openbox udevadm xdotool ss; do
         command -v "$cmd" >/dev/null || missing+=("$cmd")
     done
     if (( ${#missing[@]} )); then
         log "Missing dependencies: ${missing[*]}"
-        log "Please install them with: sudo apt install ${missing[*]}"
+        log "Please install: sudo apt install \${missing[*]} xserver-xorg-video-dummy"
         exit 1
     fi
 }
 
-# ── Parse command-line arguments ─────────────────────────────────────────────
-parse_args() {
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            --device=*) DEVICE="${1#*=}" ;;
-            --unblock)  UNBLOCK=true ;;
-            *) log "Unknown option: $1"; exit 1 ;;
-        esac
-        shift
-    done
-}
-
-# ── Start headless X session with Openbox ────────────────────────────────────
+# ── Start headless Xorg + Openbox ─────────────────────────────────────────────
 start_x_session() {
-    log "Launching Xvfb + Openbox on :1"
-    nohup Xvfb :1 -screen 0 1024x768x16 -ac   >/dev/null 2>&1 &
-    sleep 1
-    nohup openbox --display :1                >/dev/null 2>&1 &
-    sleep 1
+    log "Launching Xorg (dummy) on $DISPLAY_NUM"
+    if ! pgrep -f "Xorg $DISPLAY_NUM" >/dev/null; then
+        Xorg $DISPLAY_NUM \
+            -config /etc/X11/xorg.conf.d/10-dummy.conf \
+            -nolisten tcp vt7 \
+            > "$HOME/.sitrad_logs/xorg.log" 2>&1 &
+        sleep 2
+    else
+        log "Xorg already running"
+    fi
+
+    log "Launching Openbox on $DISPLAY_NUM"
+    if ! pgrep -f "openbox --display $DISPLAY_NUM" >/dev/null; then
+        openbox --display $DISPLAY_NUM \
+            > "$HOME/.sitrad_logs/openbox.log" 2>&1 &
+        sleep 1
+    else
+        log "Openbox already running"
+    fi
     mkdir -p "$DOS_DIR"
 }
 
-# ── Remove reserved COM ports (used with --unblock) ──────────────────────────
+# ── Remove reserved COM ports (used with --unblock) ───────────────────────────
 unblock_ports() {
     log "Removing COM2–COM20 blockers"
-    find "$DOS_DIR" -maxdepth 1 \( -type d -name 'com[2-9]' -o -name 'com1[0-9]' \) -print0 |
-        xargs -0 -r rm -rf
+    find "$DOS_DIR" -maxdepth 1 \( -type d -name 'com[2-9]' -o -name 'com1[0-9]' \) -print0 \
+        | xargs -0 -r rm -rf
 }
 
 # ── Detect FTDI adapter (USB-serial) ─────────────────────────────────────────
 detect_ftdi() {
-    if [[ -n $DEVICE ]]; then
-        FTDI_DEVICE="$DEVICE"
-    else
-        log "Detecting FTDI adapter..."
-        for dev in /dev/ttyUSB*; do
-            [[ -e $dev ]] || continue
-            vendor=$(udevadm info -q property -n "$dev" | grep -m1 '^ID_VENDOR=' | cut -d= -f2 || true)
-            [[ $vendor == FTDI ]] && { FTDI_DEVICE="$dev"; break; }
-        done
-    fi
+    log "Detecting FTDI adapter..."
+    for dev in /dev/ttyUSB*; do
+        [[ -e $dev ]] || continue
+        local vendor=$(udevadm info -q property -n "$dev" | grep -m1 '^ID_VENDOR=' | cut -d= -f2 || true)
+        [[ $vendor == FTDI ]] && { FTDI_DEVICE="$dev"; break; }
+    done
     [[ -z ${FTDI_DEVICE:-} ]] && { log "No FTDI adapter found"; exit 1; }
     log "Using $FTDI_DEVICE as COM1"
 }
 
-# ── Block COM2–COM20 to prevent Wine from auto-mapping ───────────────────────
+# ── Block COM2–COM20 to prevent Wine auto-mapping ─────────────────────────────
 block_ports() {
     log "Blocking COM2–COM20"
     find "$DOS_DIR" -maxdepth 1 -type l -name 'com*' -exec rm -f {} +
@@ -108,35 +107,29 @@ map_com1() {
 
 # ── Add shell alias to launch Sitrad manually ────────────────────────────────
 add_alias() {
-    local correct_alias="alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && wine ./\"$EXE_NAME\" && popd >/dev/null'"
-
-    if grep -Fq 'alias sitrad4.13=' "$BASHRC"; then
-        log "Updating existing alias sitrad4.13 in ~/.bashrc"
-        sed -i '/alias sitrad4\.13=/d' "$BASHRC"
-    else
-        log "Adding alias sitrad4.13 to ~/.bashrc"
-    fi
-
-    echo "$correct_alias" >> "$BASHRC"
-
-    eval "$correct_alias"
-    log "Alias sitrad4.13 is now available in this session"
+    local alias_cmd="alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && wine ./$EXE_NAME && popd >/dev/null'"
+    grep -Fq 'alias sitrad4.13=' "$BASHRC" && sed -i '/alias sitrad4\.13=/d' "$BASHRC"
+    echo "$alias_cmd" >> "$BASHRC"
+    eval "$alias_cmd"
+    log "Alias sitrad4.13 installed"
 }
 
 # ── Launch Sitrad via Wine on DISPLAY=:1 ──────────────────────────────────────
 launch_sitrad() {
     log "Launching Sitrad 4.13 under Wine"
+    pkill -f "$EXE_PATH" || true
+    sleep 1
     pushd "$EXE_DIR" >/dev/null
-    DISPLAY=:1 wine "./$EXE_NAME" &
+    wine "./$EXE_NAME" &
     WINE_PID=$!
     popd >/dev/null
 }
 
 # ── Wait for Sitrad window and send Ctrl+L ────────────────────────────────────
 trigger_ctrl_l() {
-    log "Waiting for Sitrad window…"
+    log "Waiting for Sitrad window..."
     local wid
-    until wid=$(xdotool search --name "Sitrad Local" 2>/dev/null | head -n1); do
+    until wid=$(xdotool --display "$DISPLAY_NUM" search --name "Sitrad Local" 2>/dev/null | head -n1); do
         sleep 0.5
     done
     log "Window $wid detected — waiting 30 s"
@@ -163,6 +156,8 @@ main() {
     add_alias
     launch_sitrad
     trigger_ctrl_l
+    log "──────────────────────────────────────────────────────"
+    log "setup_sitrad.sh complete"
 }
 
 main "$@"
