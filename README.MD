@@ -366,8 +366,10 @@ systemctl --user list-timers
 **Q: How do I view the send logs?**
 
 ```bash
-journalctl --user -u send_to_tb.service -n 50
+journalctl --user -u display.service -f
 journalctl --user -u sitrad.service -f
+journalctl --user -u send_to_tb.service -n 50
+journalctl --disk-usage
 ```
 
 **Q: Where should I run `chmod +x`?**
