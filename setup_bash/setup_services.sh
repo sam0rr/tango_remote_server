@@ -2,40 +2,93 @@
 set -euo pipefail
 
 ###############################################################################
-# install_services.sh — Install and enable Sitrad and telemetry systemd units
-# • Creates sitrad.service to launch Sitrad in headless Wine mode
-# • Creates send_to_tb.service to push telemetry to ThingsBoard
-# • Creates send_to_tb.timer to run the telemetry push every 30 seconds
-# • Automatically reloads systemd and enables the services
-# • Enables linger so user-level services start at boot without login
+# install_services.sh — Install and enable:
+#  • Xorg dummy configuration
+#  • display.service       (headless Xorg+dummy + Openbox)
+#  • sitrad.service       (wine Sitrad under headless display)
+#  • send_to_tb.service   (telemetry push)
+#  • send_to_tb.timer     (every 30 seconds)
+#  • linger for user-level services
 ###############################################################################
 
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 UNIT_DIR="$HOME/.config/systemd/user"
+
+# 1) Install Xorg dummy driver configuration
+echo "➡ Installing Xorg dummy driver configuration..."
+sudo mkdir -p /etc/X11/xorg.conf.d
+sudo tee /etc/X11/xorg.conf.d/10-dummy.conf > /dev/null <<'EOF'
+Section "Device"
+    Identifier  "DummyDevice"
+    Driver      "dummy"
+EndSection
+
+Section "Monitor"
+    Identifier  "DummyMonitor"
+    HorizSync   28.0-80.0
+    VertRefresh 48.0-75.0
+EndSection
+
+Section "Screen"
+    Identifier   "DummyScreen"
+    Device       "DummyDevice"
+    Monitor      "DummyMonitor"
+    DefaultDepth 24
+    SubSection "Display"
+        Depth     24
+        Modes     "1024x768"
+    EndSubSection
+EndSection
+EOF
+
+echo "✓ /etc/X11/xorg.conf.d/10-dummy.conf created"
+
+# 2) Prepare user systemd directory
 mkdir -p "$UNIT_DIR"
 
-# --- Setup Sitrad Service ---
-SITRAD_SCRIPT="$BASEDIR/sitrad/setup_sitrad.sh"
-cat > "$UNIT_DIR/sitrad.service" <<EOF
+# 3) Create display.service (headless Xorg+dummy + Openbox)
+cat > "$UNIT_DIR/display.service" <<EOF
 [Unit]
-Description=Run Sitrad 4.13 on boot and restart if it crashes
+Description=Headless Xorg (dummy) + Openbox display for Sitrad
 After=network.target
 
 [Service]
 Type=simple
 Environment=DISPLAY=:1
-Environment=WINEDEBUG=-all
+ExecStart=/usr/bin/Xorg :1 \
+    -config /etc/X11/xorg.conf.d/10-dummy.conf \
+    -nolisten tcp vt7
+ExecStartPost=/usr/bin/openbox --display :1
 Restart=always
-RestartSec=3
-
-WorkingDirectory=$BASEDIR/sitrad
-ExecStart=$SITRAD_SCRIPT
+RestartSec=2
 
 [Install]
 WantedBy=default.target
 EOF
 
-# --- Setup send_to_tb Service + Timer ---
+# 4) Create sitrad.service (runs after display.service)
+SITRAD_SCRIPT="$BASEDIR/sitrad/setup_sitrad.sh"
+cat > "$UNIT_DIR/sitrad.service" <<EOF
+[Unit]
+Description=Run Sitrad 4.13 under Wine (headless)
+After=network.target display.service
+Requires=display.service
+
+[Service]
+Type=simple
+Environment=DISPLAY=:1
+Environment=XAUTHORITY=%h/.Xauthority
+Environment=WINEDEBUG=-all
+WorkingDirectory=$BASEDIR/sitrad
+ExecStart=$SITRAD_SCRIPT
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
+EOF
+
+# 5) Create send_to_tb.service (telemetry push)
 SEND_SCRIPT="$BASEDIR/send_to_tb/main.py"
 cat > "$UNIT_DIR/send_to_tb.service" <<EOF
 [Unit]
@@ -48,6 +101,7 @@ ExecStart=$SEND_SCRIPT
 Environment=PYTHONUNBUFFERED=1
 EOF
 
+# 6) Create send_to_tb.timer (every 30 seconds)
 cat > "$UNIT_DIR/send_to_tb.timer" <<EOF
 [Unit]
 Description=Run send_to_tb.service every 30 seconds
@@ -62,20 +116,31 @@ Persistent=true
 WantedBy=timers.target
 EOF
 
-# --- Enable Services ---
-echo "Reloading systemd and enabling services..."
+# 7) Reload and enable user services
+echo "➡ Reloading systemd user units..."
 systemctl --user daemon-reload
-systemctl --user enable --now sitrad.service
-systemctl --user enable --now send_to_tb.timer
 
-# --- Enable linger for user services at boot ---
-echo "Enabling linger for user $(whoami) so services start without login..."
+# Enable and start display & sitrad services
+systemctl --user enable display.service --now
+systemctl --user enable sitrad.service --now
+
+# Enable and start telemetry timer
+systemctl --user enable send_to_tb.timer --now
+
+# 8) Enable user linger for services at boot
+echo "➡ Enabling linger for user $(whoami)..."
 sudo loginctl enable-linger "$(whoami)"
 
-echo -e "\nServices installed and running:"
-echo "   - sitrad.service      (restart on crash, headless Xvfb via setup_sitrad.sh)"
-echo "   - send_to_tb.timer    (runs every 30s)"
+# 9) Summary echo
+cat <<EOF
 
-echo -e "\nTo monitor:"
-echo "   journalctl --user -u sitrad.service -f"
-echo "   journalctl --user -u send_to_tb.service -n 50"
+Services installed and running:
+   - display.service      (headless Xorg+dummy + Openbox)
+   - sitrad.service       (Wine Sitrad under headless display)
+   - send_to_tb.timer     (runs every 30 seconds)
+
+To monitor logs:
+   journalctl --user -u display.service -f
+   journalctl --user -u sitrad.service -f
+   journalctl --user -u send_to_tb.service -n 50
+EOF
