@@ -117,18 +117,27 @@ launch_sitrad() {
 
 # ── Wait for Sitrad window and send Ctrl+L ────────────────────────────────────
 trigger_ctrl_l() {
-    log "Waiting for Sitrad window..."
-    local wid
-    until wid=$(xdotool --display "$DISPLAY_NUM" search --name "Sitrad Local" 2>/dev/null | head -n1); do
+    log "Waiting for 'Sitrad Local' window (max 60s)..."
+    local wid=""
+    for i in {1..120}; do
+        wid=$(xdotool --display "$DISPLAY" search --name "Sitrad Local" 2>/dev/null | head -n1 || true)
+        [[ -n "$wid" ]] && break
         sleep 0.5
     done
-    log "Window $wid detected — waiting 30 s"
-    sleep 30
-    if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
-        log "Ctrl+L sent successfully to window $wid"
-    else
-        log "Could not send Ctrl+L to window $wid"
+
+    if [[ -z "$wid" ]]; then
+        log "Window 'Sitrad Local' not detected after 60s"
+        return
     fi
+
+    log "Window $wid detected — sending Ctrl+L"
+    sleep 3
+    if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
+        log "Ctrl+L sent to window $wid"
+    else
+        log "Failed to send Ctrl+L"
+    fi
+
     wait "$WINE_PID"
     log "Sitrad exited (PID=$WINE_PID)"
 }
