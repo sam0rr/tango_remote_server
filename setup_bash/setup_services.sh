@@ -62,7 +62,6 @@ RestartSec=5
 [Install]
 WantedBy=default.target
 EOF
-)"
 
 # 4) Create sitrad.service (depends on display)
 SITRAD_SCRIPT="$BASEDIR/sitrad/setup_sitrad.sh"
