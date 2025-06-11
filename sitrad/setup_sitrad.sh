@@ -58,8 +58,8 @@ start_x_session() {
     fi
 
     log "Launching Openbox on $DISPLAY_NUM"
-    if ! pgrep -f "openbox --display $DISPLAY_NUM" >/dev/null; then
-        openbox --display $DISPLAY_NUM &
+    if ! pgrep -f "openbox" >/dev/null; then
+        openbox &
         sleep 1
     else
         log "Openbox already running"
@@ -104,7 +104,7 @@ add_alias() {
     log "Alias sitrad4.13 installed"
 }
 
-# ── Launch Sitrad via Wine on DISPLAY=:1 ──────────────────────────────────────
+# ── Launch Sitrad via Wine on DISPLAY=:1 ─────────────────────────────────────
 launch_sitrad() {
     log "Launching Sitrad 4.13 under Wine"
     pkill -f "$EXE_PATH" || true
@@ -130,8 +130,8 @@ trigger_ctrl_l() {
         return
     fi
 
-    log "Window $wid detected — sending Ctrl+L"
-    sleep 3
+    log "Window $wid detected — waiting 30 s"
+    sleep 30
     if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
         log "Ctrl+L sent to window $wid"
     else
