@@ -120,7 +120,7 @@ trigger_ctrl_l() {
     log "Waiting for 'Sitrad Local' window (max 60s)..."
     local wid=""
     for i in {1..120}; do
-        wid=$(xdotool --display "$DISPLAY" search --name "Sitrad Local" 2>/dev/null | head -n1 || true)
+        wid=$(xdotool search --name "Sitrad Local" 2>/dev/null | head -n1 || true)
         [[ -n "$wid" ]] && break
         sleep 0.5
     done
