@@ -16,6 +16,10 @@ DUMMY_CONF="/etc/X11/xorg.conf.d/10-dummy.conf"
 
 echo "Uninstalling Services..."
 
+# Kill wine server (if running)
+echo "Stopping Wine server…"
+wineserver -k &> /dev/null || true
+
 # 1) Stop & disable display.service
 echo "Stopping and disabling display.service..."
 systemctl --user stop display.service 2>/dev/null || true
