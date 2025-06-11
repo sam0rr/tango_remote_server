@@ -5,7 +5,7 @@ set -euo pipefail
 # install_services.sh — Install and enable:
 #  • journald retention policy (auto-prune old logs)
 #  • Xorg dummy driver configuration
-#  • display.service       (headless Xorg + Openbox)
+#  • display.service       (Xorg)
 #  • sitrad.service        (Wine Sitrad under virtual display)
 #  • send_to_tb.service    (telemetry push to ThingsBoard)
 #  • send_to_tb.timer      (runs every 30 seconds)
@@ -59,16 +59,16 @@ echo "/etc/X11/xorg.conf.d/10-dummy.conf created"
 # 2) Prepare user systemd directory
 mkdir -p "$UNIT_DIR"
 
-# 3) Create display.service: Xorg dummy + Openbox (headless)
+# 3) Create display.service: Xorg dummy
 cat > "$UNIT_DIR/display.service" <<EOF
 [Unit]
-Description=Headless Xorg (dummy) + Openbox display for Sitrad
+Description=Headless Xorg (dummy) for Sitrad
 After=network.target
 
 [Service]
 Type=simple
 Environment=DISPLAY=:1
-ExecStart=/bin/sh -c 'rm -f /tmp/.X1-lock && /usr/bin/Xorg :1 -config /etc/X11/xorg.conf.d/10-dummy.conf -nolisten tcp -logfile /dev/null -quiet & while ! xdpyinfo -display :1 > /dev/null 2>&1; do sleep 0.5; done; exec /usr/bin/openbox'
+ExecStart=/bin/sh -c 'rm -f /tmp/.X1-lock && /usr/bin/Xorg :1 -config /etc/X11/xorg.conf.d/10-dummy.conf -nolisten tcp -logfile /dev/null -quiet'
 Restart=always
 RestartSec=5
 
@@ -144,7 +144,7 @@ cat <<EOF
 
 Services installed and running:
    - journald retention policy (200M / 7d)
-   - display.service      (Xorg + Openbox headless)
+   - display.service      (Xorg dummy only)
    - sitrad.service       (Wine Sitrad using DISPLAY=:1)
    - send_to_tb.timer     (pushes data every 30 seconds)
 
