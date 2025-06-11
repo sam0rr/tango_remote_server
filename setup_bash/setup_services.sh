@@ -55,7 +55,7 @@ After=network.target
 [Service]
 Type=simple
 Environment=DISPLAY=:1
-ExecStart=/bin/sh -c 'rm -f /tmp/.X1-lock && /usr/bin/Xorg :1 -config /etc/X11/xorg.conf.d/10-dummy.conf -nolisten tcp & while ! xdpyinfo -display :1 > /dev/null 2>&1; do sleep 0.5; done; exec /usr/bin/openbox --display :1'
+ExecStart=/bin/sh -c 'rm -f /tmp/.X1-lock && /usr/bin/Xorg :1 -config /etc/X11/xorg.conf.d/10-dummy.conf -nolisten tcp & while ! xdpyinfo -display :1 > /dev/null 2>&1; do sleep 0.5; done; exec /usr/bin/openbox'
 Restart=always
 RestartSec=5
 
