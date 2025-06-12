@@ -20,10 +20,12 @@ echo "➡ Configuring journal retention..."
 sudo mkdir -p /etc/systemd/journald.conf.d
 sudo tee /etc/systemd/journald.conf.d/00-retention.conf > /dev/null <<'EOF'
 [Journal]
+Storage=persistent
 SystemMaxUse=200M
 SystemKeepFree=50M
 SystemMaxFileSize=50M
 SystemMaxFiles=5
+MaxFileSec=1day
 MaxRetentionSec=7day
 EOF
 sudo systemctl restart systemd-journald
@@ -149,8 +151,8 @@ Services installed and running:
    - send_to_tb.timer     (pushes data every 30 seconds)
 
 To monitor logs:
-   journalctl --user -u display.service -f
-   journalctl --user -u sitrad.service -f
-   journalctl --user -u send_to_tb.service -n 50
+   sudo journalctl -u display.service -f
+   sudo journalctl -u sitrad.service -f
+   sudo journalctl -u send_to_tb.service -n 50
    journalctl --disk-usage
 EOF
