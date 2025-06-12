@@ -126,19 +126,19 @@ LOG_FILE=sitrad_push.log
 # ▶︎ Telemetry sending behavior
 ###############################################################################
 # Max number of lines per batch allowed
-MAX_BATCH_SIZE=100
+MAX_BATCH_SIZE=50
 # Max retry attempts before giving up (resilient split logic included)
 MAX_RETRY=5
 # Initial backoff (in milliseconds) before first retry
 INITIAL_DELAY_MS=200
 # Max delay before giving up (resilient split logic included)
-MAX_DELAY=30
+MAX_DELAY_SEC=30
 # Timeout (in seconds) for each HTTP POST request
 POST_TIMEOUT=10
 # Enforce a fixed time window (in seconds) between each batch
-BATCH_WINDOW_SEC=1.0
+BATCH_WINDOW_SEC=2.0
 # Minimum size for batch splitting (disable split with large value like 9999)
-MIN_BATCH_SIZE_TO_SPLIT=2
+MIN_BATCH_SIZE_TO_SPLIT=1
 
 ###############################################################################
 # ▶︎ Filtering / Data cleaning

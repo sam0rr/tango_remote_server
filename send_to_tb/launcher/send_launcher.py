@@ -25,7 +25,7 @@ class SendToLauncher:
     After all batches are processed, the alarms table is cleared.
     """
 
-    def __init__(self, fetcher, client, max_batch_size: int, batch_window_sec: float = 1.0):
+    def __init__(self, fetcher, client, max_batch_size: int, batch_window_sec: float = 2.0):
         """
         :param fetcher:         Instance of DataFetcher (fetcher.db_path must exist)
         :param client:          Instance of HttpClient (ThingsBoardClient)
