@@ -272,7 +272,7 @@ Deletes units, Xorg dummy config, journald retention file, disables linger.
 
 - **xserver-xorg-video-dummy** will be started on `:1` (handled by `sitrad.service`).  
 - Wine runs Sitrad in that virtual X server (`DISPLAY=:1`).  
-- `setup_sitrad.sh` waits for the window, sleeps 30 s until Sitrad’s UI is fully loaded, then calls `send_ctrl_l_to_sitrad.sh` to send “Ctrl+L” inside Xorg.  
+- `setup_sitrad.sh` waits for the window, sleeps 45 s until Sitrad’s UI is fully loaded, then calls `send_ctrl_l_to_sitrad.sh` to send “Ctrl+L” inside Xorg.  
 
 If you later connect a physical monitor and want Sitrad to appear on `:0` instead of headless, modify `setup_sitrad.sh` to export `DISPLAY=:0` and remove any Xorg references.
 
@@ -357,7 +357,7 @@ https://thingsboard.cloud/api/v1/{device_token}/telemetry
 - Exports `DISPLAY=:1` (pointing to Xorg).  
 - Starts Wine with Sitrad in the background.  
 - Loops until `xdotool search` finds the “Sitrad Local” window in Xorg.  
-- Sleeps 30 seconds for UI initialization.  
+- Sleeps 45 seconds for UI initialization.  
 - Calls `send_ctrl_l_to_sitrad.sh` to send “Ctrl+L” inside Xorg.
 
 ### `send_ctrl_l_to_sitrad.sh`
