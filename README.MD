@@ -5,7 +5,7 @@
 This repository turns a low-cost Linux box (Raspberry Pi 3/4, Debian 12 PC, etc.) into a self-contained
 gateway that :
 
-1. **Runs Sitrad PRO 4.13** under Wine – completely head-less, thanks to a **dummy Xorg server** (no
+1. **Runs Sitrad 4.13** under Wine – completely head-less, thanks to a **dummy Xorg server** (no
    Xvfb, no window-manager, no HDMI dongle).
 2. **Harvests telemetry** from the SQLite database Sitrad produces.
 3. **Sends the data** to **ThingsBoard Cloud** through a resilient HTTP client with rate-limiting,
@@ -216,7 +216,7 @@ cd scripts
 python -m send_to_tb.main
 ```
 
-#### Run Sitrad PRO manually (headless)
+#### Run Sitrad 4.13 manually (headless)
 
 ```bash
 ./sitrad/setup_sitrad.sh
@@ -248,9 +248,10 @@ This creates and enables:
 
 ```bash
 systemctl --user list-timers
-journalctl --user -u display.service -f        # Follow Xorg Display logs
-journalctl --user -u sitrad.service -f         # Follow Sitrad logs
-journalctl --user -u send_to_tb.service -n 50  # Last 50 lines of telemetry‐sender logs
+sudo journalctl -u display.service -f       # Follow Xorg Display logs
+sudo journalctl -u sitrad.service -f        # Follow Sitrad logs
+sudo journalctl -u send_to_tb.service -f    # Last 50 lines of telemetry‐sender logs
+journalctl --disk-usage
 ```
 
 ### Uninstall Services
@@ -263,7 +264,7 @@ Deletes units, Xorg dummy config, journald retention file, disables linger.
 
 ---
 
-## Launching Sitrad PRO (via Wine, headless)
+## Launching Sitrad 4.13 (via Wine, headless)
 
 ```bash
 ./sitrad/setup_sitrad.sh
@@ -394,9 +395,9 @@ systemctl --user list-timers
 **Q: How do I view the send logs?**
 
 ```bash
-journalctl --user -u display.service -f
-journalctl --user -u sitrad.service -f
-journalctl --user -u send_to_tb.service -n 50
+sudo journalctl -u display.service -f       # Follow Xorg Display logs
+sudo journalctl -u sitrad.service -f        # Follow Sitrad logs
+sudo journalctl -u send_to_tb.service -f    # Last 50 lines of telemetry‐sender logs
 journalctl --disk-usage
 ```
 
@@ -443,6 +444,6 @@ With this updated README, you can:
 - Install dependencies (including `Xorg Dumm` and `xdotool` for headless Sitrad).  
 - Make scripts executable.  
 - Run `send_to_tb` manually or via systemd timer.  
-- Run Sitrad PRO under Wine in a headless X server (Xorg), with automatic “Ctrl+L” after UI load.  
+- Run Sitrad 4.13 under Wine in a headless X server (Xorg), with automatic “Ctrl+L” after UI load.  
 - Monitor emissions to ThingsBoard.  
 - Adjust file paths and DISPLAY settings as needed for your environment.
