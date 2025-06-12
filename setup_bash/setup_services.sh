@@ -151,8 +151,8 @@ Services installed and running:
    - send_to_tb.timer     (pushes data every 30 seconds)
 
 To monitor logs:
-   sudo journalctl -u display.service -f
-   sudo journalctl -u sitrad.service -f
-   sudo journalctl -u send_to_tb.service -n 50
+   journalctl --user -u display.service -f        # Follow Xorg Display logs
+   journalctl --user -u sitrad.service -f         # Follow Sitrad logs
+   journalctl --user -u send_to_tb.service -n 50  # Last 50 lines of telemetry‐sender logs
    journalctl --disk-usage
 EOF
