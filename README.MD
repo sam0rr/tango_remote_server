@@ -383,6 +383,7 @@ https://thingsboard.cloud/api/v1/{device_token}/telemetry
 **Q: How do I verify that rows were removed?**
 
 ```bash
+sudo apt install -y sqlite3    # If not installed (READ database)
 sqlite3 ~/.wine/drive_c/ProgramData/Full\ Gauge/Sitrad/data.db "SELECT COUNT(*) FROM tc900log;"
 ```
 
