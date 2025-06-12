@@ -42,8 +42,8 @@ class SendToLauncher:
         Retrieve fresh telemetry payloads from the fetcher.
         Each payload is a dict containing keys "rowid", "ts", and "values".
         """
-        result = self.fetcher.fetch_and_prepare()
-        return result if isinstance(result, list) else result[0]
+        payloads, *_ = self.fetcher.fetch_and_prepare()
+        return payloads
 
     def _send_in_chunks(self, payloads: list[dict]) -> None:
         """
@@ -56,14 +56,14 @@ class SendToLauncher:
         if total == 0:
             return
 
-        for start in range(0, total, self.max_batch_size):
-            batch = payloads[start : start + self.max_batch_size]
-            self._process_batch(batch, start)
+        for batch_no, start in enumerate(range(0, total, self.max_batch_size), start=1):
+            batch = payloads[start: start + self.max_batch_size]
+            self._process_batch(batch, batch_no)
             time.sleep(self.batch_window_sec)
 
         log.info("All batches processed.")
 
-    def _process_batch(self, batch: list[dict], start_index: int) -> None:
+    def _process_batch(self, batch: list[dict], batch_no: int) -> None:
         """
         Send one batch via client.send_resilient(),
         delete its rowids if fully sent, and log the result.
@@ -73,9 +73,7 @@ class SendToLauncher:
         if sent == len(batch):
             self._delete_batch_rowids(batch)
 
-        log.info(
-            f"Batch {start_index+1}-{start_index+len(batch)}: sent {sent}/{len(batch)}"
-        )
+        log.info(f"Batch {batch_no}: sent {sent}/{len(batch)}")
 
     def _delete_batch_rowids(self, batch: list[dict]) -> None:
         """
