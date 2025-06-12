@@ -126,7 +126,7 @@ LOG_FILE=sitrad_push.log
 # ▶︎ Telemetry sending behavior
 ###############################################################################
 # Max number of lines per batch allowed
-MAX_BATCH_SIZE=50
+MAX_BATCH_SIZE=25
 # Max retry attempts before giving up (resilient split logic included)
 MAX_RETRY=5
 # Initial backoff (in milliseconds) before first retry

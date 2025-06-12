@@ -84,7 +84,7 @@ class Config:
         Load telemetry transmission configuration.
         """
         return {
-            "max_batch_size": int(get("MAX_BATCH_SIZE", "50")),
+            "max_batch_size": int(get("MAX_BATCH_SIZE", "25")),
             "max_retry": int(get("MAX_RETRY", "5")),
             "initial_delay_sec": int(get("INITIAL_DELAY_MS", "200")) / 1000.0,
             "max_delay_sec": float(get("MAX_DELAY_SEC", "30.0")),
