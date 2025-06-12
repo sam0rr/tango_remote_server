@@ -41,7 +41,7 @@ def build_launcher(cfg: Config) -> SendToLauncher:
         device_token=cfg.device_token,
         max_retry=cfg.max_retry,
         initial_delay=cfg.initial_delay_sec,
-        max_delay=cfg.max_delay_sec
+        max_delay=cfg.max_delay_sec,
         timeout=cfg.post_timeout_sec,
         min_batch_size_to_split=cfg.min_batch_size_to_split
     )
