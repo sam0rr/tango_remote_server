@@ -21,9 +21,10 @@ class Config:
     log_file: str
 
     # ▶︎ Telemetry sending behavior
-    max_msgs_per_sec: int
+    max_batch_size: int
     max_retry: int
     initial_delay_sec: float
+    max_delay_sec: float
     post_timeout_sec: int
     batch_window_sec: float
     min_batch_size_to_split: int
@@ -83,12 +84,13 @@ class Config:
         Load telemetry transmission configuration.
         """
         return {
-            "max_msgs_per_sec": int(get("MAX_MSGS_PER_SEC", "10")),
+            "max_batch_size": int(get("MAX_BATCH_SIZE", "25")),
             "max_retry": int(get("MAX_RETRY", "5")),
             "initial_delay_sec": int(get("INITIAL_DELAY_MS", "200")) / 1000.0,
+            "max_delay_sec": float(get("MAX_DELAY_SEC", "30.0")),
             "post_timeout_sec": int(get("POST_TIMEOUT", "10")),
-            "batch_window_sec": float(get("BATCH_WINDOW_SEC", "1.0")),
-            "min_batch_size_to_split": int(get("MIN_BATCH_SIZE_TO_SPLIT", "2")),
+            "batch_window_sec": float(get("BATCH_WINDOW_SEC", "2.0")),
+            "min_batch_size_to_split": int(get("MIN_BATCH_SIZE_TO_SPLIT", "1")),
         }
 
     @staticmethod

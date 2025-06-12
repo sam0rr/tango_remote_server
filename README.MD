@@ -125,18 +125,20 @@ LOG_FILE=sitrad_push.log
 ###############################################################################
 # ▶︎ Telemetry sending behavior
 ###############################################################################
-# Max number of messages per second allowed (ThingsBoard rate limit)
-MAX_MSGS_PER_SEC=10
+# Max number of lines per batch allowed
+MAX_BATCH_SIZE=25
 # Max retry attempts before giving up (resilient split logic included)
 MAX_RETRY=5
 # Initial backoff (in milliseconds) before first retry
 INITIAL_DELAY_MS=200
+# Max delay before giving up (resilient split logic included)
+MAX_DELAY_SEC=30
 # Timeout (in seconds) for each HTTP POST request
 POST_TIMEOUT=10
 # Enforce a fixed time window (in seconds) between each batch
-BATCH_WINDOW_SEC=1.0
+BATCH_WINDOW_SEC=2.0
 # Minimum size for batch splitting (disable split with large value like 9999)
-MIN_BATCH_SIZE_TO_SPLIT=2
+MIN_BATCH_SIZE_TO_SPLIT=1
 
 ###############################################################################
 # ▶︎ Filtering / Data cleaning
@@ -278,41 +280,70 @@ If you later connect a physical monitor and want Sitrad to appear on `:0` instea
 
 ## Internal Workings
 
-### `main.py`
+### 1. `main.py`
+1. Load environment variables → `Config.from_env()` (validates and fails fast on missing values).  
+2. Instantiate `SitradDataFetcher`.  
+3. Instantiate `ThingsBoardClient` (passing `max_delay` in addition to other settings).  
+4. Create `SendToLauncher(fetcher, client, max_batch_size, batch_window_sec)` and call `.start()`.
 
-- Loads .env → Config.from_env() (validates, fail-fast).
-- Instantiates `SitradDataFetcher`.  
-- Instantiates `ThingsBoardClient`.  
-- Launches `SendToLauncher`.
+---
 
-### `SitradDataFetcher`
+### 2. `SitradDataFetcher`
+- **`fetch_rows()`**  
+  - Open SQLite in WAL mode.  
+  - `SELECT * FROM tc900log`.
 
-- `fetch_rows()`: Opens SQLite in WAL mode, selects all rows from `tc900log`.  
-- `build_payload(row)`: Validates timestamp, constructs payload with fields: `Temp1`, `Temp2`, `defr`, `fans`, `refr`, `dig1`, `dig2`.  
-- Includes `"rowid"`, `"ts"`, and a `"values"` dictionary.  
-- `fetch_and_prepare()`: Returns a list of payload dicts.
+- **`build_payload(row)`**  
+  - Validate the timestamp.  
+  - Construct a payload dict containing:  
+    - **`rowid`**, **`ts`**  
+    - **`values`**: `{ Temp1, Temp2, defr, fans, refr, dig1, dig2 }`
 
-### `ThingsBoardClient`
+- **`fetch_and_prepare()`**  
+  - Iterate `for row in fetch_rows()`:  
+    - Call `build_payload(row)`.  
+  - Return **list** of all payload dicts.
 
-- Builds the HTTP endpoint URL.  
-- `post_json_with_retry()`: Posts JSON with retry/backoff.  
-- `send_resilient(batch)`: Sends a batch of payloads reliably.
+---
 
-### `SendToLauncher`
+### 3. `ThingsBoardClient`  
+*(subclass of `HttpClient`)*  
+- Build the POST URL:  
+https://thingsboard.cloud/api/v1/{device_token}/telemetry
 
-- `start()`:  
-  - Calls `_fetch_payloads()` → list of payload dicts.  
-  - Calls `_send_in_chunks(payloads)` to split and send in mini‐lots.  
-- `_fetch_payloads()`: Returns `[{"rowid":…, "ts":…, "values":{…}}, …]`.  
-- `_send_in_chunks(payloads)`:  
-  - Splits payloads into chunks of `MAX_MSGS_PER_SEC`.  
-  - Calls `_send_fine_grained_batch(chunk)` for each chunk.  
-  - Calls `_enforce_rate_limit(window_start)` to ensure ≤ N messages/sec.  
-- `_send_fine_grained_batch(batch)`:  
-  - Sends each payload individually (`send_resilient([payload])`).  
-  - Collects rowids of successful sends into a list.  
-  - Calls `delete_rows(db_path, rowids_to_delete)` once per batch.  
-- `_enforce_rate_limit(window_start)`: Sleeps the remaining time so that each chunk spans of at least `BATCH_WINDOW_SEC` second.
+- **`post_json_with_retry(payloads)`** ← inherited  
+- POST JSON with retry/back-off + `Retry-After` handling.  
+- **`send_resilient(batch)`** ← inherited  
+- Reliably send a batch (split on failures, drop on single-item failure).
+
+---
+
+### 4. `SendToLauncher`
+- **`start()`**  
+1. Call `_fetch_payloads()` → returns a `List[dict]` of form `{ "rowid":…, "ts":…, "values":{…} }`.  
+2. Call `_send_in_chunks(payloads)`.  
+3. After all chunks, call `delete_all_rows()` on the alarm table.  
+4. Call `client.close()`.
+
+- **`_fetch_payloads()`**  
+- `payloads, *_ = fetcher.fetch_and_prepare()`  
+- Return `payloads` (ensures we always get the main list).
+
+- **`_send_in_chunks(payloads)`**  
+1. Compute `total = len(payloads)`.  
+2. For each chunk of size `max_batch_size`:  
+   - Use `enumerate(..., start=1)` to get `batch_no`.  
+   - Call `_process_batch(chunk, batch_no)`.  
+   - Sleep `batch_window_sec` seconds.  
+
+- **`_process_batch(batch, batch_no)`**  
+1. `sent = client.send_resilient(batch)`.  
+2. If `sent == len(batch)`, call `_delete_batch_rowids(batch)`.  
+3. Log: `Batch {batch_no}: sent {sent}/{len(batch)}`.
+
+- **`_delete_batch_rowids(batch)`**  
+- Extract `rowid` values from each entry.  
+- Call `delete_rows(db_path, telemetry_table, rowids, timeout)` once per batch.
 
 ---
 
