@@ -107,3 +107,4 @@ class SendToLauncher:
         )
 
         self.client.close()
+        log.info("Http client closed.")
