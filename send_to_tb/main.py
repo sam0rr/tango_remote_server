@@ -5,6 +5,7 @@ main.py — Entrypoint: load .env, configure logging, purge logs, and start loop
 
 import os
 import sys
+import logging
 from pathlib import Path
 
 pkg_dir = Path(__file__).resolve().parent

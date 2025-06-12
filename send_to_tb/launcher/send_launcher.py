@@ -42,7 +42,7 @@ class SendToLauncher:
         Retrieve fresh telemetry payloads from the fetcher.
         Each payload is a dict containing keys "rowid", "ts", and "values".
         """
-        payloads, *_ = self.fetcher.fetch_and_prepare()
+        payloads = self.fetcher.fetch_and_prepare()
         return payloads
 
     def _send_in_chunks(self, payloads: list[dict]) -> None:
