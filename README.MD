@@ -67,7 +67,6 @@ tango_remote_server/
 | Package                          | Purpose                                             | Debian/RPi Install Command                                    |
 |----------------------------------|-----------------------------------------------------|--------------------------------------------------------------|
 | **Python 3.8 + pip**             | Runs telemetry scripts                              | `sudo apt install -y python3 python3-venv`                   |
-| **Wine (i386)**                  | Executes *SitradLocal.exe*                          | `sudo apt install -y wine`                                   |
 | **xserver-xorg-video-dummy**     | Real X server on `:1` without GPU / monitor         | `sudo apt install -y xserver-xorg-video-dummy`               |
 | **xdotool**                      | Sends <kbd>Ctrl + L</kbd> inside the hidden window  | `sudo apt install -y xdotool`                                |
 | **systemd --user**               | Already present on Debian & Raspberry Pi OS         | –                                                            |
@@ -77,7 +76,7 @@ Install those with:
 
 ```bash
 sudo apt update
-sudo apt install -y openbox xdotool xserver-xorg-video-dummy
+sudo apt install -y python3 python3-venv xdotool xserver-xorg-video-dummy
 ```
 
 > **No Xvfb, no Openbox**. The dummy driver gives Wine a _real_ X server, which solves focus, font and
