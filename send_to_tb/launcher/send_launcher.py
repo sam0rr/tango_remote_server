@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-send_launcher.py — Fine-grained launcher with post-send batch deletion.
+send_launcher.py — Batch launcher with post-send batch deletion.
 Orchestrates:
   1) fetch_and_prepare() from DataFetcher (returns list of payloads with "rowid")
-  2) chunk payloads by max_per_sec
-  3) send each one via HttpClient.send_resilient()
-  4) for each mini-batch, collect ALL rowids and delete them in bulk
-  5) enforce 1s delay between batches
+  2) chunk payloads by max_batch_size
+  3) send each batch via HttpClient.send_resilient()
+  4) for each batch, if fully sent, collect ALL rowids and delete them in bulk
+  5) enforce batch_window_sec delay between batches
   6) at the end, clear all rows from the alarm table
 """
 
@@ -20,21 +20,21 @@ log = logging.getLogger("send_launcher")
 class SendToLauncher:
     """
     Launches the telemetry pipeline by combining a DataFetcher and HttpClient.
-    Payloads are sent in small batches; each successfully sent payload's rowid
-    is collected, then all collected rowids are deleted in one SQL transaction.
-    After that, the alarms table is cleared if it contains any rows.
+    Payloads are sent in batches of max_batch_size; each batch fully sent
+    has all its rowids collected and deleted in one SQL transaction.
+    After all batches are processed, the alarms table is cleared.
     """
 
-    def __init__(self, fetcher, client, max_per_sec: int, batch_window_sec: float = 1.0):
+    def __init__(self, fetcher, client, max_batch_size: int, batch_window_sec: float = 1.0):
         """
-        :param fetcher:     Instance of DataFetcher (fetcher.db_path must exist)
-        :param client:      Instance of HttpClient (ThingsBoardClient)
-        :param max_per_sec: Max number of messages to send per second
-        :param batch_window_sec: Time window in seconds between batch sends
+        :param fetcher:         Instance of DataFetcher (fetcher.db_path must exist)
+        :param client:          Instance of HttpClient (ThingsBoardClient)
+        :param max_batch_size:  Max number of payloads per batch
+        :param batch_window_sec: Delay in seconds between batch sends
         """
         self.fetcher = fetcher
         self.client = client
-        self.max_per_sec = max_per_sec
+        self.max_batch_size = max_batch_size
         self.batch_window_sec = batch_window_sec
 
     def _fetch_payloads(self) -> list[dict]:
@@ -47,80 +47,56 @@ class SendToLauncher:
 
     def _send_in_chunks(self, payloads: list[dict]) -> None:
         """
-        Loop through payloads in chunks of max_per_sec, call _send_fine_grained_batch,
-        then apply a delay before processing the next chunk.
+        Loop through payloads in batches of max_batch_size,
+        delegate each batch to _process_batch(),
+        and enforce delay between batches.
         """
         total = len(payloads)
-        log.info("Processing %d payload(s).", total)
+        log.info(f"Processing {total} payload(s) in batches of {self.max_batch_size}.")
         if total == 0:
             return
 
-        sent_count = 0
-        batch: list[dict] = []
-        window_start = time.monotonic()
+        for start in range(0, total, self.max_batch_size):
+            batch = payloads[start : start + self.max_batch_size]
+            self._process_batch(batch, start)
+            time.sleep(self.batch_window_sec)
 
-        for entry in payloads:
-            batch.append(entry)
+        log.info("All batches processed.")
 
-            if len(batch) >= self.max_per_sec:
-                sent_count += self._send_fine_grained_batch(batch)
-                window_start = self._enforce_rate_limit(window_start)
-                batch.clear()
-
-        if batch:
-            sent_count += self._send_fine_grained_batch(batch)
-
-        log.info("Done. Sent %d/%d payload(s).", sent_count, total)
-
-    def _send_fine_grained_batch(self, batch: list[dict]) -> int:
+    def _process_batch(self, batch: list[dict], start_index: int) -> None:
         """
-        Send each message individually, collect all successful rowids,
-        then delete them in one single transaction at the end.
-        Returns the number of successfully sent payloads.
+        Send one batch via client.send_resilient(),
+        delete its rowids if fully sent, and log the result.
         """
-        sent_total = 0
-        rowids_to_delete: list[int] = []
+        sent = self.client.send_resilient(batch)
 
-        for entry in batch:
-            payload = {
-                "ts": entry["ts"],
-                "values": entry["values"]
-            }
+        if sent == len(batch):
+            self._delete_batch_rowids(batch)
 
-            try:
-                sent = self.client.send_resilient([payload])
-                if sent:
-                    rowid = entry.get("rowid")
-                    if rowid is not None:
-                        rowids_to_delete.append(rowid)
-                    sent_total += 1
-            except Exception as e:
-                log.warning("Failed to send single payload: %s", e)
+        log.info(
+            f"Batch {start_index+1}-{start_index+len(batch)}: sent {sent}/{len(batch)}"
+        )
 
-        if rowids_to_delete:
-            delete_rows(
-                db_path=self.fetcher.db_path,
-                table_name=self.fetcher.tables["telemetry"],
-                rowids=rowids_to_delete,
-                timeout=self.fetcher.timeout
-            )
-
-        return sent_total
-
-    def _enforce_rate_limit(self, window_start: float) -> float:
+    def _delete_batch_rowids(self, batch: list[dict]) -> None:
         """
-        Sleep the remaining time to enforce a minimum batch window.
+        Collect all rowids from a batch and delete them in one SQL transaction.
         """
-        elapsed = time.monotonic() - window_start
-        if elapsed < self.batch_window_sec:
-            time.sleep(self.batch_window_sec - elapsed)
-        return time.monotonic()
+        rowids = [entry["rowid"] for entry in batch if entry.get("rowid") is not None]
+        if not rowids:
+            return
+
+        delete_rows(
+            db_path=self.fetcher.db_path,
+            table_name=self.fetcher.tables["telemetry"],
+            rowids=rowids,
+            timeout=self.fetcher.timeout
+        )
 
     def start(self):
         """
         Entry point:
           1) Fetch all payloads (list of dicts with "rowid", "ts", "values").
-          2) Chunk them by max_per_sec and call _send_fine_grained_batch().
+          2) Chunk them by max_batch_size and call _send_in_chunks().
           3) After all telemetry rows are sent & deleted, clear the alarm table.
         """
         payloads = self._fetch_payloads()
@@ -131,3 +107,5 @@ class SendToLauncher:
             table_name=self.fetcher.tables["alarm"],
             timeout=self.fetcher.timeout
         )
+
+        self.client.close()

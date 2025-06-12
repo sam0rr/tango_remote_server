@@ -6,6 +6,8 @@ import time
 import random
 import logging
 import requests
+from email.utils import parsedate_to_datetime
+from datetime import datetime, timezone
 
 log = logging.getLogger("http_client")
 
@@ -17,18 +19,28 @@ class HttpClient:
       - send_resilient(): send batches, splitting on failure.
     """
 
-    def __init__(self, post_url: str, max_retry: int = 5, initial_delay: float = 0.2,
-                 timeout: int = 10, min_batch_size_to_split: int = 2):
+    def __init__(
+        self,
+        post_url: str,
+        max_retry: int = 5,
+        initial_delay: float = 0.2,
+        max_delay: float = 30.0,
+        timeout: int = 10,
+        min_batch_size_to_split: int = 2
+    ):
         self.post_url = post_url
         self.max_retry = max_retry
         self.initial_delay = initial_delay
+        self.max_delay = max_delay
         self.timeout = timeout
         self.min_batch_size_to_split = min_batch_size_to_split
+
+        self.session = requests.Session()
 
     def _attempt_post(self, payload: list[dict]) -> requests.Response | None:
         """Attempt a single POST request."""
         try:
-            return requests.post(
+            return self.session.post(
                 self.post_url,
                 headers={"Content-Type": "application/json"},
                 json=payload,
@@ -38,24 +50,35 @@ class HttpClient:
             log.warning("Network exception: %s", exc)
             return None
 
+    def _get_retry_after(self, raw: str, default: float) -> float:
+        """Parse Retry-After header as seconds or HTTP-date."""
+        if not raw:
+            return default
+        try:
+            return float(raw)
+        except ValueError:
+            try:
+                dt = parsedate_to_datetime(raw)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                delta = (dt - datetime.now(tz=timezone.utc)).total_seconds()
+                return max(delta, 0)
+            except Exception:
+                return default
+
     def _handle_retry_delay(
         self, response: requests.Response, delay: float, attempt: int
     ) -> float:
         """Apply back-off based on Retry-After header or double delay."""
-        retry_after = response.headers.get("Retry-After")
-        try:
-            pause = float(retry_after) if retry_after else delay
-        except ValueError:
-            pause = delay
+        raw = response.headers.get("Retry-After")
+        pause = self._get_retry_after(raw, delay)
 
         log.warning(
             "HTTP %d → sleeping %.2fs (attempt %d/%d)",
             response.status_code, pause, attempt, self.max_retry
         )
         time.sleep(pause)
-        
-        new_delay = delay * 2
-        new_delay += random.uniform(0, new_delay / 2)
+        new_delay = min(delay * 2 + random.uniform(0, delay), self.max_delay)
         return new_delay
 
     def post_json_with_retry(self, payload: list[dict]) -> bool:
@@ -70,16 +93,19 @@ class HttpClient:
             if response is None:
                 log.warning("Request failed → retrying in %.2fs", delay)
                 time.sleep(delay)
-                delay *= 2
+                delay = min(delay * 2, self.max_delay)
                 continue
 
             code = response.status_code
             if 200 <= code < 300:
+                response.close()
                 return True
             if self._should_retry(code):
                 delay = self._handle_retry_delay(response, delay, attempt)
+                response.close()
                 continue
 
+            response.close()
             return self._log_and_drop(code, response)
 
         log.error("Exhausted retries for payload. Dropping.")
@@ -106,11 +132,15 @@ class HttpClient:
 
         left, right = self._split_batch(batch)
         return self.send_resilient(left) + self.send_resilient(right)
+    
+    def close(self) -> None:
+        """Close the HTTP session."""
+        self.session.close()
 
     @staticmethod
     def _should_retry(status_code: int) -> bool:
-        """Return True if status_code is retriable (e.g. 429, 500, 502-504)."""
-        return status_code in (429, 500, 502, 503, 504)
+        """Return True if status_code is retriable (e.g. 408, 429, 500, 502-504)."""
+        return status_code in (408, 429, 500, 502, 503, 504)
 
     @staticmethod
     def _log_and_drop(status_code: int, response: requests.Response) -> bool:

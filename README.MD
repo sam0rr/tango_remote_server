@@ -125,12 +125,14 @@ LOG_FILE=sitrad_push.log
 ###############################################################################
 # ▶︎ Telemetry sending behavior
 ###############################################################################
-# Max number of messages per second allowed (ThingsBoard rate limit)
-MAX_MSGS_PER_SEC=10
+# Max number of lines per batch allowed
+MAX_BATCH_SIZE=100
 # Max retry attempts before giving up (resilient split logic included)
 MAX_RETRY=5
 # Initial backoff (in milliseconds) before first retry
 INITIAL_DELAY_MS=200
+# Max delay before giving up (resilient split logic included)
+MAX_DELAY=30
 # Timeout (in seconds) for each HTTP POST request
 POST_TIMEOUT=10
 # Enforce a fixed time window (in seconds) between each batch
