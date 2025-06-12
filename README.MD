@@ -248,9 +248,9 @@ This creates and enables:
 
 ```bash
 systemctl --user list-timers
-sudo journalctl -u display.service -f       # Follow Xorg Display logs
-sudo journalctl -u sitrad.service -f        # Follow Sitrad logs
-sudo journalctl -u send_to_tb.service -f    # Last 50 lines of telemetry‐sender logs
+journalctl --user -u display.service -f        # Follow Xorg Display logs
+journalctl --user -u sitrad.service -f         # Follow Sitrad logs
+journalctl --user -u send_to_tb.service -n 50  # Last 50 lines of telemetry‐sender logs
 journalctl --disk-usage
 ```
 
@@ -395,9 +395,9 @@ systemctl --user list-timers
 **Q: How do I view the send logs?**
 
 ```bash
-sudo journalctl -u display.service -f       # Follow Xorg Display logs
-sudo journalctl -u sitrad.service -f        # Follow Sitrad logs
-sudo journalctl -u send_to_tb.service -f    # Last 50 lines of telemetry‐sender logs
+journalctl --user -u display.service -f        # Follow Xorg Display logs
+journalctl --user -u sitrad.service -f         # Follow Sitrad logs
+journalctl --user -u send_to_tb.service -n 50  # Last 50 lines of telemetry‐sender logs
 journalctl --disk-usage
 ```
 
