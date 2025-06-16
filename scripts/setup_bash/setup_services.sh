@@ -79,7 +79,7 @@ WantedBy=default.target
 EOF
 
 # 4) Create sitrad.service (depends on display)
-SITRAD_SCRIPT="$BASEDIR/sitrad/setup_sitrad.sh"
+SITRAD_SCRIPT="$BASEDIR/scripts/sitrad/setup_sitrad.sh"
 cat > "$UNIT_DIR/sitrad.service" <<EOF
 [Unit]
 Description=Run Sitrad 4.13 under Wine (headless)
