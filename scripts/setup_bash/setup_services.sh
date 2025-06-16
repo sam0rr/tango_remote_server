@@ -12,7 +12,7 @@ set -euo pipefail
 #  • user-level lingering for autostart at boot
 ###############################################################################
 
-BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 UNIT_DIR="$HOME/.config/systemd/user"
 
 # 0) Create journald retention drop-in so logs auto-prune
