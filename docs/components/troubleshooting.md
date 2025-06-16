@@ -42,13 +42,9 @@ Temporarily set:
 MAX_MSGS_PER_SEC=0
 ```
 
-**Q: How can I access devices rem?**
+**Q: How can I access my devices remotly?**
 
 Use the Tailscale SSH console in the admin panel to manage your Pi from anywhere. 
-
- 
-
-Your Raspberry Pi is now fully configured with 4G LTE connectivity, secure Tailscale networking, and Sitrad 4.13 running under Wine. 
 
 ---
 

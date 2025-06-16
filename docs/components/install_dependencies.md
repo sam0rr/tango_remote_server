@@ -9,7 +9,7 @@ sudo apt update && sudo apt full-upgrade -y
 
 ## 1.2 Required packages
 
-# System packages
+### System packages
 
 ```bash
 sudo apt install -y python3 python3-venv \
@@ -17,13 +17,13 @@ sudo apt install -y python3 python3-venv \
     modemmanager network-manager curl
 ```
 
-# Install Tailscale
+### Install Tailscale
 
 ```bash
 curl -fsSL https://tailscale.com/install.sh | sh
 ```
 
-# Python env
+### Python env
 
 ```bash
 python3 -m venv venv
