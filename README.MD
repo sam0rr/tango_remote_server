@@ -80,7 +80,7 @@ TANGO_REMOTE_SERVER/
 
 - Add a new `DataFetcher` (e.g., MySQL, API, CSV) by subclassing `DataFetcher`.  
 - Add a new `HttpClient` (e.g., Kafka, another IoT API) by subclassing `HttpClient`.  
-- The core `SendToLauncher` logic remains source
+- The core `SendToLauncher` logic remains sourc
 
 ---
 
