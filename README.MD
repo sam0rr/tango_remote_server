@@ -1,6 +1,10 @@
 # README
 
+---
+
 ## Project Description
+
+---
 
 This repository turns a low-cost Linux box (Raspberry Pi 3/4, Debian 12 PC, etc.) into a self-contained
 gateway that :

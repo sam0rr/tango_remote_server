@@ -1,4 +1,7 @@
+
 # Step 3 — Install Services
+
+---
 
 ## Prerequisites
 
@@ -82,7 +85,7 @@ Then exit nano:
 Ctrl+X → Y → Enter
 ```
 
-🛈 `DB_PATH` accepts `~` or full path. `LOG_FILE` is written under `send_to_tb/logs/`.
+-> `DB_PATH` accepts `~` or full path. `LOG_FILE` is written under `send_to_tb/logs/`.
 
 ---
 

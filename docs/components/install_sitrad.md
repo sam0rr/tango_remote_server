@@ -1,6 +1,8 @@
 
 # Step 2 — Install Wine 32-bit & Sitrad 4.13
 
+---
+
 ## 2.1 Install Wine via Pi-Apps
 
 ```bash

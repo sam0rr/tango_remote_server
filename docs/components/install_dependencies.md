@@ -1,6 +1,8 @@
 
 # Step 1 — Install Dependencies
 
+---
+
 ## 1.1 Update the system
 
 ```bash

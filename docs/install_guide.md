@@ -1,6 +1,8 @@
 
 # Installation & Configuration Guide
 
+---
+
 This guide provides a high‑level overview. Each major step links to a dedicated document located in
 `docs/components/`.
 
