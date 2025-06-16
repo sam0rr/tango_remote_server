@@ -34,13 +34,13 @@ journalctl --disk-usage                        # Check disk usage of logs
 **Q: Where should I run `chmod +x`?**
 
 ```bash
-cd ~/tango_remote_server/scripts/
+cd ~/tango_remote_server/
 
 chmod +x send_to_tb/main.py
-chmod +x sitrad/setup_sitrad.sh
-chmod +x sitrad/send_ctrl_l_to_sitrad.sh
-chmod +x setup_bash/setup_services.sh
-chmod +x setup_bash/kill_services.sh
+chmod +x scripts/sitrad/setup_sitrad.sh
+chmod +x scripts/sitrad/send_ctrl_l_to_sitrad.sh
+chmod +x scripts/setup_bash/setup_services.sh
+chmod +x scripts/setup_bash/kill_services.sh
 ```
 
 ---
