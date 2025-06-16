@@ -16,7 +16,7 @@ BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 UNIT_DIR="$HOME/.config/systemd/user"
 
 # 0) Create journald retention drop-in so logs auto-prune
-echo "➡ Configuring journal retention..."
+echo "Configuring journal retention..."
 sudo mkdir -p /etc/systemd/journald.conf.d
 sudo tee /etc/systemd/journald.conf.d/00-retention.conf > /dev/null <<'EOF'
 [Journal]
@@ -31,7 +31,7 @@ EOF
 sudo systemctl restart systemd-journald
 
 # 1) Install Xorg dummy configuration
-echo "➡ Installing Xorg dummy driver configuration..."
+echo "Installing Xorg dummy driver configuration..."
 sudo mkdir -p /etc/X11/xorg.conf.d
 sudo tee /etc/X11/xorg.conf.d/10-dummy.conf > /dev/null <<'EOF'
 Section "Device"
@@ -129,16 +129,16 @@ WantedBy=timers.target
 EOF
 
 # 7) Reload systemd and enable everything
-echo "➡ Reloading systemd user units..."
+echo "Reloading systemd user units..."
 systemctl --user daemon-reload
 
-echo "➡ Enabling and starting services..."
+echo "Enabling and starting services..."
 systemctl --user enable --now display.service
 systemctl --user enable --now sitrad.service
 systemctl --user enable --now send_to_tb.timer
 
 # 8) Enable linger so user services auto-start at boot
-echo "➡ Enabling linger for user $(whoami)..."
+echo "Enabling linger for user $(whoami)..."
 sudo loginctl enable-linger "$(whoami)"
 
 # 9) Final summary
