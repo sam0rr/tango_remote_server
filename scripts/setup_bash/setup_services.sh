@@ -91,7 +91,7 @@ Type=simple
 Environment=DISPLAY=:1
 Environment=XAUTHORITY=%h/.Xauthority
 Environment=WINEDEBUG=-all
-WorkingDirectory=$BASEDIR/sitrad
+WorkingDirectory=$BASEDIR/scripts/sitrad
 ExecStart=$SITRAD_SCRIPT
 Restart=always
 RestartSec=3
