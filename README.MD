@@ -51,6 +51,7 @@ TANGO_REMOTE_SERVER/
 │
 ├── send_to_tb/
 │   ├── main.py                           ← Entrypoint
+│   ├── .env                              ← Environment config (you need to implement)
 │   ├── clients/
 │   │   ├── __init__.py
 │   │   ├── http_client.py
