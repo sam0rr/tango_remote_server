@@ -3,7 +3,20 @@
 
 ---
 
-This guide provides a high‑level overview. Each major step links to a dedicated document located in
+## Clone the Repository
+
+Open a terminal on your Raspberry Pi and run:
+
+```bash
+git clone https://github.com/sam0rr/tango_remote_server
+cd tango_remote_server
+```
+
+---
+
+## Installation Steps Overview
+
+This guide provides a high‑level overview. Each major step links to a dedicated document located in  
 `docs/components/`.
 
 | Step | Document |
@@ -15,10 +28,10 @@ This guide provides a high‑level overview. Each major step links to a dedicate
 
 ---
 
-**Hardware prerequisites**
+## Hardware Prerequisites
 
-* Raspberry Pi 4 (Pi 4 recommended)
-* SIM7600X‑H 4G LTE HAT (USB)
-* Active data SIM
+- Raspberry Pi 4 (recommended for performance)
+- SIM7600X‑H 4G LTE HAT (USB)
+- Active data SIM
 
 ---
