@@ -29,7 +29,7 @@ Once open:
 wineserver -k
 
 # Run the Sitrad installer and follow steps
-wine ~/tango_remote_server/assets/SitradLocal.exe
+wine ~/tango_remote_server/assets/SetupLocal.exe
 ```
 
 ---
