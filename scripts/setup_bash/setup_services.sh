@@ -89,7 +89,7 @@ After=network.target
 Type=simple
 Environment=DISPLAY=:1
 ExecStart=/bin/sh -c 'rm -f /tmp/.X1-lock && cd /etc/X11 && \
-    /usr/bin/Xorg :1 -configdir xorg.conf.d -nolisten tcp -logfile /dev/null -quiet'
+    /usr/bin/Xorg :1 -configdir xorg.conf.d -nolisten tcp -quiet'
 Restart=always
 RestartSec=5
 
