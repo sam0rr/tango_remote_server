@@ -4,7 +4,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 
 ###############################################################################
 # setup_sitrad.sh — Smart, refactored launcher for Sitrad 4.13 on Raspberry Pi
-# • Starts Xorg (dummy) for headless GUI (fallback if needed)
+# • Waits for Xorg (dummy) session started via display.service
 # • Detects FTDI adapter and maps to Wine COM1
 # • Blocks COM2–COM20 to prevent Wine conflicts
 # • Adds alias sitrad4.13 to .bashrc
@@ -37,7 +37,7 @@ error_handler() { log "ERROR at line $1: $2"; exit 1; }
 # ── Check for required tools ─────────────────────────────────────────────────
 check_dependencies() {
     local missing=()
-    for cmd in wine Xorg udevadm xdotool ss; do
+    for cmd in wine udevadm xdotool ss; do
         command -v "$cmd" >/dev/null || missing+=("$cmd")
     done
     if (( ${#missing[@]} )); then
@@ -47,19 +47,13 @@ check_dependencies() {
     fi
 }
 
-# ── Start headless Xorg (fallback) ────────────────────────────────────────────
+# ── Wait for headless Xorg session ────────────────────────────────────────────
 start_x_session() {
-    log "Launching Xorg (dummy) on $DISPLAY_NUM (fallback)"
-    if ! pgrep -f "Xorg $DISPLAY_NUM" >/dev/null; then
-        cd /etc/X11 && \
-        Xorg "$DISPLAY_NUM" \
-            -configdir xorg.conf.d \
-            -nolisten tcp \
-            -quiet &
-        sleep 2
-    else
-        log "Xorg already running"
-    fi
+    log "Waiting for Xorg on $DISPLAY_NUM (started via display.service)…"
+    until pgrep -f "Xorg $DISPLAY_NUM" >/dev/null; do
+        sleep 0.5
+    done
+    log "Xorg is running on $DISPLAY_NUM"
     mkdir -p "$DOS_DIR"
 }
 
