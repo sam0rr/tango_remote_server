@@ -10,10 +10,17 @@ sudo apt update && sudo apt full-upgrade -y
 
 ### System packages
 ```bash
-sudo apt install -y python3 python3-venv \
-    xdotool xserver-xorg-video-dummy \
-    modemmanager network-manager curl
+sudo apt install -y python3 python3-venv    xdotool xserver-xorg-video-dummy    modemmanager network-manager curl    lightdm-settings
 ```
+
+> **Enable graphical autologin (XFCE / LightDM)**
+> 1. Launch the tool from CLI:  
+>    ```bash
+>    pkexec lightdm-settings
+>    ```  
+>    or open **Applications ▸ Settings ▸ Login Window**.
+> 2. Enter the password (`tango`), go to the **Users** tab.  
+> 3. Tick **Automatic login**, choose **tango** as the username, then click **Save**.
 
 > **Armbian Bookworm only**  
 > `xserver-xorg-legacy` is **required** so headless Xorg can get VT permissions.  
