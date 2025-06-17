@@ -5,7 +5,7 @@
 
 ## Clone the Repository
 
-Open a terminal on your Raspberry Pi and run:
+Open a terminal on your machine and run:
 
 ```bash
 git clone https://github.com/sam0rr/tango_remote_server

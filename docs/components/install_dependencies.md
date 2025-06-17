@@ -49,13 +49,13 @@ curl ifconfig.me    # Public IP check
 ```
 
 
-## 1.5  Bring the Pi online (Tailscale)
+## 1.5  Bring the machine online (Tailscale)
 
 ```bash
 sudo tailscale up --ssh
 ```
 
-Open the authentication link printed by Tailscale, log in, and add the desired raspberrypi tag in the Tailscale admin console. 
+Open the authentication link printed by Tailscale, log in, and add the desired machine tag in the Tailscale admin console. 
 Afterwards, you can SSH securely with Tailscale SSH. 
 
 ---

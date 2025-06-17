@@ -57,7 +57,7 @@ MAX_MSGS_PER_SEC=0
 
 **Q: How can I access my devices remotely?**
 
-Use the **Tailscale SSH console** in the admin panel to manage your Pi from anywhere:  
+Use the **Tailscale SSH console** in the admin panel to manage your machine from anywhere:  
 -> https://login.tailscale.com/admin/machines
 
 Steps:
