@@ -35,6 +35,6 @@ Follow the on-screen prompts to complete the installation.
 
 ---
 
-## Continue with **[Step 3 — Install Services & Deploy](install_services.md)**.
+Continue with **[Step 3 — Install Services & Deploy](install_services.md)**.
 
 ---
