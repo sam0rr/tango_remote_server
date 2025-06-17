@@ -138,6 +138,7 @@ Connect a monitor and RS-485 USB adapter.
 Launch Sitrad:
 
 ```bash
+./scripts/setup_bash/kill_services.sh
 sitrad4.13
 ```
 
@@ -147,8 +148,14 @@ Then:
 2. Communication → Search  
 3. When instrument appears, close  
 4. Communication → Start  
-5. Exit Sitrad  
-6. Reboot:
+5. Exit Sitrad
+6. Restart services
+
+```bash
+./scripts/setup_bash/setup_services.sh
+```
+ 
+7. Reboot:
 
 ```bash
 sudo reboot
