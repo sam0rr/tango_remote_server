@@ -91,6 +91,6 @@ TANGO_REMOTE_SERVER/
 
 # Installation & Configuration Guide
 
-Follow the full setup guide here: **[Installation Guide](docs/install_guide.md)**
+Follow the full setup guide here: **[Installation Guide](docs/install_guide.md)**.
 
 ---

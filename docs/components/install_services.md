@@ -156,4 +156,6 @@ sudo reboot
 
 ---
 
-Having issues? → [Troubleshooting](troubleshooting.md)
+Having issues? → [Troubleshooting](troubleshooting.md).
+
+---
