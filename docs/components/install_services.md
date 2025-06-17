@@ -142,6 +142,8 @@ Launch Sitrad:
 sitrad4.13
 ```
 
+**access code : 123**
+
 Then:
 
 1. Go to *Configuration* → enable **COM1** only  
