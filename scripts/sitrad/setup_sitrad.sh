@@ -4,7 +4,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 
 ###############################################################################
 # setup_sitrad.sh — Smart, refactored launcher for Sitrad 4.13 on Raspberry Pi
-# • Starts Xorg (dummy) for headless GUI
+# • Starts Xorg (dummy) for headless GUI (fallback if needed)
 # • Detects FTDI adapter and maps to Wine COM1
 # • Blocks COM2–COM20 to prevent Wine conflicts
 # • Adds alias sitrad4.13 to .bashrc
@@ -47,13 +47,15 @@ check_dependencies() {
     fi
 }
 
-# ── Start headless Xorg ───────────────────────────────────────────────────────
+# ── Start headless Xorg (fallback) ────────────────────────────────────────────
 start_x_session() {
-    log "Launching Xorg (dummy) on $DISPLAY_NUM"
+    log "Launching Xorg (dummy) on $DISPLAY_NUM (fallback)"
     if ! pgrep -f "Xorg $DISPLAY_NUM" >/dev/null; then
-        Xorg $DISPLAY_NUM \
-            -config /etc/X11/xorg.conf.d/10-dummy.conf \
-            -nolisten tcp vt7 &
+        cd /etc/X11 && \
+        Xorg "$DISPLAY_NUM" \
+            -configdir xorg.conf.d \
+            -nolisten tcp \
+            -quiet &
         sleep 2
     else
         log "Xorg already running"
