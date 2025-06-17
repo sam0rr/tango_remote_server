@@ -18,7 +18,7 @@ UNIT_DIR="$HOME/.config/systemd/user"
 # 0) Create journald retention drop-in so logs auto-prune
 echo "Configuring journal retention..."
 sudo mkdir -p /etc/systemd/journald.conf.d
-sudo tee /etc/systemd/journald.conf.d/00-retention.conf > /dev/null <<'EOF'
+sudo tee /etc/systemd/journald.conf.d/00-retention.conf >/dev/null <<'EOF'
 [Journal]
 Storage=persistent
 SystemMaxUse=200M
@@ -51,7 +51,7 @@ fi
 # 1) Install Xorg dummy configuration
 echo "Installing Xorg dummy driver configuration..."
 sudo mkdir -p /etc/X11/xorg.conf.d
-sudo tee /etc/X11/xorg.conf.d/10-dummy.conf > /dev/null <<'EOF'
+sudo tee /etc/X11/xorg.conf.d/10-dummy.conf >/dev/null <<'EOF'
 Section "Device"
     Identifier  "DummyDevice"
     Driver      "dummy"
@@ -88,7 +88,7 @@ After=network.target
 [Service]
 Type=simple
 Environment=DISPLAY=:1
-ExecStart=/bin/sh -c 'rm -f /tmp/.X1-lock && /usr/bin/Xorg :1 -config /etc/X11/xorg.conf.d/10-dummy.conf -nolisten tcp -logfile /dev/null -quiet'
+ExecStart=/bin/sh -c 'rm -f /tmp/.X1-lock && /usr/bin/Xorg :1 -configdir /etc/X11/xorg.conf.d -nolisten tcp -logfile /dev/null -quiet'
 Restart=always
 RestartSec=5
 
