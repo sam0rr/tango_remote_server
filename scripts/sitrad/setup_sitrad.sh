@@ -8,7 +8,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 # • Detects FTDI adapter and maps to Wine COM1
 # • Blocks COM2–COM20 to prevent Wine conflicts
 # • Adds alias sitrad4.13 to .bashrc
-# • Launches SitradLocal.exe under Wine
+# • Launches SetupLocal.exe under Wine
 # • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh
 ###############################################################################
 
@@ -19,7 +19,7 @@ BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ── Wine paths ────────────────────────────────────────────────────────────────
 EXE_DIR="$HOME/.wine/drive_c/Program Files (x86)/Full Gauge/Sitrad"
-EXE_NAME="SitradLocal.exe"
+EXE_NAME="SetupLocal.exe"
 EXE_PATH="$EXE_DIR/$EXE_NAME"
 
 DOS_DIR="$HOME/.wine/dosdevices"
