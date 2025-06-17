@@ -30,6 +30,24 @@ MaxRetentionSec=7day
 EOF
 sudo systemctl restart systemd-journald
 
+# 0-bis) Ensure Xorg has root rights on headless Armbian
+if ! dpkg -s xserver-xorg-legacy >/dev/null 2>&1; then
+  echo "Installing xserver-xorg-legacy (needed on Armbian)…"
+  sudo apt update
+  sudo apt install -y xserver-xorg-legacy
+  sudo tee /etc/X11/Xwrapper.config >/dev/null <<'EOF'
+allowed_users=anybody
+needs_root_rights=yes
+EOF
+fi
+
+# 0-ter) Ensure the Xorg dummy video driver is present
+if ! dpkg -s xserver-xorg-video-dummy >/dev/null 2>&1; then
+  echo "Installing xserver-xorg-video-dummy (virtual display)…"
+  sudo apt update
+  sudo apt install -y xserver-xorg-video-dummy
+fi
+
 # 1) Install Xorg dummy configuration
 echo "Installing Xorg dummy driver configuration..."
 sudo mkdir -p /etc/X11/xorg.conf.d
@@ -153,6 +171,6 @@ Services installed and running:
 To monitor logs:
    journalctl --user -u display.service -f        # Follow Xorg Display logs
    journalctl --user -u sitrad.service -f         # Follow Sitrad logs
-   journalctl --user -u send_to_tb.service -n 50  # Last 50 lines of telemetry‐sender logs
+   journalctl --user -u send_to_tb.service -n 50  # Last 50 lines of telemetry-sender logs
    journalctl --disk-usage
 EOF
