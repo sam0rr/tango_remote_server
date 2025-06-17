@@ -1,6 +1,5 @@
 
 # Step 3 — Install Services
-
 ---
 
 ## Prerequisites
@@ -8,11 +7,12 @@
 - Access to ThingsBoard Cloud (device token)  
 - (Already installed if steps were followed correctly)
 
-| Package                      | Purpose                                             | Install Command                                      |
-|-----------------------------|-----------------------------------------------------|------------------------------------------------------|
-| **Python 3.8 + pip**        | Runs telemetry scripts                              | `sudo apt install -y python3 python3-venv`           |
-| **xserver-xorg-video-dummy**| Real X server on `:1` without GPU / monitor         | `sudo apt install -y xserver-xorg-video-dummy`       |
-| **xdotool**                 | Sends <kbd>Ctrl + L</kbd> inside the hidden window  | `sudo apt install -y xdotool`                        |
+| Package                       | Purpose                                             | Install Command                                      |
+|-------------------------------|-----------------------------------------------------|------------------------------------------------------|
+| **Python 3.8 + pip**         | Runs telemetry scripts                              | `sudo apt install -y python3 python3-venv`           |
+| **xserver-xorg-video-dummy** | Real X server on `:1` without GPU / monitor         | `sudo apt install -y xserver-xorg-video-dummy`       |
+| **xserver-xorg-legacy**      | Grants TTY permissions for headless Xorg sessions   | `sudo apt install -y xserver-xorg-legacy`            |
+| **xdotool**                  | Sends <kbd>Ctrl + L</kbd> inside the hidden window  | `sudo apt install -y xdotool`                        |
 
 ---
 
@@ -156,7 +156,7 @@ Then:
 ```bash
 ./scripts/setup_bash/setup_services.sh
 ```
- 
+
 7. Reboot:
 
 ```bash
