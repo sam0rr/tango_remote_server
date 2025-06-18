@@ -18,6 +18,7 @@ When prompted:
   * Choose **5 – Raspberry Pi**
   * **OR**
   * Choose **6 – Other ARM64**
+* **Option 5 – Install winetricks**
 * **Option 4 – Install Wine x86 files**
 
 ---
