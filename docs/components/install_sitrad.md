@@ -13,13 +13,12 @@ cd armbian-gaming
 
 When prompted:
 
-* **Option 2 – Install/Update Box86**
+* **Option 1 – Install/Update Box64**
 
   * Choose **5 – Raspberry Pi**
   * **OR**
   * Choose **6 – Other ARM64**
-* **Option 5 – Install winetricks**
-* **Option 4 – Install Wine x86 files**
+* **Option 3 – Install Wine x64 files**
 
 ---
 
