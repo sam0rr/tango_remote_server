@@ -128,8 +128,12 @@ Description=Send telemetry to ThingsBoard
 [Service]
 Type=oneshot
 WorkingDirectory=$BASEDIR/send_to_tb
-ExecStart=$SEND_SCRIPT
+EnvironmentFile=$BASEDIR/send_to_tb/.env
 Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 -u $SEND_SCRIPT
+
+[Install]
+WantedBy=default.target
 EOF
 
 # 6) Create send_to_tb.timer (every 30 seconds)
