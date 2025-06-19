@@ -85,11 +85,13 @@ curl ifconfig.me    # Public IP check
 ```
 
 ## 1.6 Bring the machine online (Tailscale)
+Give your machine a unique hostname (to avoid name collisions on Tailscale):
 ```bash
+sudo hostnamectl set-hostname <your_device_name> 
 sudo tailscale up --ssh
 ```
 
-Open the authentication link printed by Tailscale, log in, and add the desired machine tag in the Tailscale admin console.  
+Open the authentication link printed by Tailscale, log in and connect.
 Afterwards, you can SSH securely with Tailscale SSH.
 
 ---
