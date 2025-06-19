@@ -141,7 +141,7 @@ cat > "$UNIT_DIR/send_to_tb.timer" <<EOF
 Description=Run send_to_tb.service every 30 seconds
 
 [Timer]
-OnBootSec=10
+OnStartupSec=20s
 OnUnitActiveSec=30s
 AccuracySec=1s
 Persistent=true
