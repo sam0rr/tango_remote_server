@@ -128,7 +128,6 @@ Description=Send telemetry to ThingsBoard
 [Service]
 Type=oneshot
 WorkingDirectory=$BASEDIR/send_to_tb
-EnvironmentFile=$BASEDIR/send_to_tb/.env
 Environment=PYTHONUNBUFFERED=1
 ExecStart=/usr/bin/python3 -u $SEND_SCRIPT
 
