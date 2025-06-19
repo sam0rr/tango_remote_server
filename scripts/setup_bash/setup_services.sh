@@ -109,7 +109,7 @@ After=network.target display.service
 Requires=display.service
 
 [Service]
-Type=exec
+Type=simple
 Environment=DISPLAY=:1
 Environment=XAUTHORITY=%h/.Xauthority
 Environment=WINEDEBUG=-all
