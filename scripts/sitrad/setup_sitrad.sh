@@ -18,7 +18,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ── Wine paths ────────────────────────────────────────────────────────────────
-EXE_DIR="$HOME/.wine/drive_c/Program Files/Full Gauge/Sitrad"
+EXE_DIR="$HOME/.wine/drive_c/Program Files (x86)/Full Gauge/Sitrad"
 EXE_NAME="SitradLocal.exe"
 EXE_PATH="$EXE_DIR/$EXE_NAME"
 

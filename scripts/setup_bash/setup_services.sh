@@ -89,7 +89,8 @@ After=network.target
 Type=simple
 Environment=DISPLAY=:1
 ExecStart=/bin/sh -c 'rm -f /tmp/.X1-lock && cd /etc/X11 && \
-    /usr/bin/Xorg :1 -configdir xorg.conf.d -nolisten tcp -quiet'
+    /usr/bin/Xorg :1 -configdir xorg.conf.d -nolisten tcp -quiet -noreset'
+ExecStop=/usr/bin/killall -q Xorg
 Restart=always
 RestartSec=5
 
@@ -106,7 +107,7 @@ After=network.target display.service
 Requires=display.service
 
 [Service]
-Type=simple
+Type=exec
 Environment=DISPLAY=:1
 Environment=XAUTHORITY=%h/.Xauthority
 Environment=WINEDEBUG=-all

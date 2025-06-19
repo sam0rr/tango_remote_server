@@ -40,16 +40,15 @@ sudo apt install -y python3 python3-venv \
     lightdm-settings
 ```
 
-> **Enable graphical autologin (XFCE / LightDM)**  
+> **Enable graphical autologin (LightDM)**  
 > 1. Launch the tool from CLI:  
 >    ```bash
 >    pkexec lightdm-settings
 >    ```  
->    or open **Applications ▸ Settings ▸ Login Window**.  
 > 2. Enter the password (`tango`), go to the **Users** tab.  
 > 3. Tick **Automatic login**, choose **tango** as the username, then click **Save**.
 
-> **Armbian Bookworm only**  
+> **For Armbian**  
 > `xserver-xorg-legacy` is **required** so headless Xorg can get VT permissions.  
 > The install script will add it automatically if it’s missing, but you can do it now:
 > ```bash

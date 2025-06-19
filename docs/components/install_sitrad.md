@@ -1,40 +1,40 @@
 
 # Step 2 — Install Wine 32-bit & Sitrad 4.13
 
-## 2.1 Install the armbian-gaming repo
+---
 
-Clone the armbian-gaming repo and run the installer:
+## 2.1 Install Wine via Pi-Apps
 
 ```bash
-git clone https://github.com/NicoD-SBC/armbian-gaming.git
-cd armbian-gaming
-/bin/bash ./armbian-gaming.sh
+# Clone and install Pi-Apps
+cd
+git clone https://github.com/Botspot/pi-apps ~/pi-apps
+~/pi-apps/install
+
+# Launch the GUI, then choose:
+pi-apps
 ```
 
-When prompted:
+Once open:
 
-* **Option 2 – Install/Update Box86**
-
-  * Choose **5 – Raspberry Pi**
-  * **OR**
-  * Choose **6 – Other ARM64**
-* **Option 5 – Install winetricks**
-* **Option 4 – Install Wine x86 files**
-
----
+1. Select Tools 
+2. Select Emulation
+3. Select Wine
+4. Select install 
+5. Wait for installation 
 
 ## 2.2 Install Sitrad 4.13
 
-Run the Sitrad installer:
-
 ```bash
+# Stop any running Wine server if any
+wineserver -k
+
+# Run the Sitrad installer and follow steps
 wine ~/tango_remote_server/assets/SetupLocal.exe
 ```
 
-Follow the on-screen prompts to complete the installation.
-
 ---
 
-Continue with **[Step 3 — Install Services & Deploy](install_services.md)**.
+Continue with **[Step 3 — Install Services & Deploy](install_services.md)**.
 
 ---
