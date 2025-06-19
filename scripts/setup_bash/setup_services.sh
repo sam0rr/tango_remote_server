@@ -129,7 +129,7 @@ Description=Send telemetry to ThingsBoard
 Type=oneshot
 WorkingDirectory=$BASEDIR/send_to_tb
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/usr/bin/python3 -u $SEND_SCRIPT
+ExecStart=$BASEDIR/venv/bin/python3 -u $SEND_SCRIPT
 
 [Install]
 WantedBy=default.target
