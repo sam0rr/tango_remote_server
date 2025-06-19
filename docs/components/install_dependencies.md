@@ -43,7 +43,7 @@ sudo apt install -y python3 python3-venv \
 > **Enable graphical autologin (LightDM)**  
 > 1. Launch the tool from CLI:  
 >    ```bash
->    pkexec lightdm-settings
+>    sudo pkexec lightdm-settings
 >    ```  
 > 2. Enter the password (`tango`), go to the **Users** tab.  
 > 3. Tick **Automatic login**, choose **tango** as the username, then click **Save**.
