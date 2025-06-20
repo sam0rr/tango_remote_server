@@ -30,7 +30,7 @@ Paste the following (with the correct device token):
 # ▶︎ Credentials
 ###############################################################################
 # ThingsBoard device token (unique par device)
-DEVICE_TOKEN=YOUR_TOKEN_HERE
+DEVICE_TOKEN=YOUR_DEVICE_TOKEN
 
 ###############################################################################
 # ▶︎ Paths
