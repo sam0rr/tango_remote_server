@@ -27,7 +27,7 @@ nano ~/tango_remote_server/send_to_tb/.env
 Replace the placeholder with your actual token:
 
 ```ini
-DEVICE_TOKEN=<YOUR_TOKEN_HERE>
+DEVICE_TOKEN=<YOUR_DEVICE_TOKEN>
 ```
 
 Then exit nano:
