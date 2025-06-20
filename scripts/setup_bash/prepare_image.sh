@@ -26,7 +26,7 @@ fi
 echo "Resetting DEVICE_TOKEN in .env..."
 if [[ -f "$ENV_FILE" ]]; then
     sed -i 's/^DEVICE_TOKEN=.*/DEVICE_TOKEN=<YOUR_DEVICE_TOKEN>/' "$ENV_FILE"
-    echo "→ Updated: $ENV_FILE"
+    echo "Updated: $ENV_FILE"
 else
     echo ".env file not found: $ENV_FILE"
 fi
@@ -42,11 +42,11 @@ sudo tailscaled --cleanup || true
 echo
 echo "Image is now clean and ready to clone."
 echo
-echo "  - The system will shut down in:"
+echo "The system will shut down in:"
 for i in {5..1}; do
     echo "  -> $i..."
     sleep 1
 done
 
-echo " - Shutting down now."
+echo "Shutting down now."
 sudo shutdown now
