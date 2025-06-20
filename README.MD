@@ -80,7 +80,7 @@ TANGO_REMOTE_SERVER/
 │       │   └── db_connect.py             ← `get_sqlite_connection()`
 │       │
 │       └── log/
-│           ├── log_setup.py              ← Configures Python log
+│           ├── log_setup.py              ← Configures Python logs
 │           └── log_cleaner.py            ← Trims old log files
 │
 ├── .gitignore
