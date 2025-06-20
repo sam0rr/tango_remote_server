@@ -25,8 +25,6 @@ cd tango_remote_server
 
 ---
 
----
-
 ## Setup And Clone Image Steps Overview
 
 | Step                           | Document                                                                  |
