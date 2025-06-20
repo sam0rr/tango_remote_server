@@ -47,6 +47,6 @@ sudo reboot
 
 ---
 
-Return to **[Complete Guide](/docs/base_guide.md)** to continue.
+Return to **[Complete Guide](/docs/base_guide.md)**.
 
 ---
