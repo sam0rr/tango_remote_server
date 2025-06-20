@@ -10,7 +10,7 @@
 * Sufficient free space in your target folder (e.g., `~/Downloads`)
 
 | Command                           | Purpose                                    |
-| --------------------------------- | -------------------------------------------|
+| --------------------------------- | ------------------------------------------ |
 | `diskutil list`                   | List all disks and identify your SD card   |
 | `diskutil unmountDisk /dev/diskN` | Unmount entire SD card (`N` = disk number) |
 
@@ -47,6 +47,18 @@
    ```
 
 2. Wait for compression to finish. The result will be `rpicfg_backup.img.gz`.
+
+---
+
+## 2.3 Save the image for persistence
+
+After compression, move or copy the `.img.gz` to a safe, persistent location:
+
+* **OneDrive (or other cloud)**
+  
+* **External drive**
+
+Ensure the destination has sufficient space and persistence.
 
 ---
 
