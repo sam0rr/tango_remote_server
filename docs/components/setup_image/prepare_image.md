@@ -28,7 +28,7 @@ The `prepare_image.sh` script cleans and finalizes the system **before** creatin
 
     The script will:
 
-   1. Stop `sitrad.service` and `send_to_tb.service` (user-level)
+   1. Stop all user custom services
    2. Replace `DEVICE_TOKEN=...` in `send_to_tb/.env` with `<YOUR_DEVICE_TOKEN>`
    3. Run `tailscale down`, `tailscale logout`, remove `/var/lib/tailscale`,
       and call `tailscaled --cleanup`
