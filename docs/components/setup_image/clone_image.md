@@ -9,10 +9,10 @@
 * Identify the device node for your SD card (e.g., `/dev/disk13` on macOS)
 * Sufficient free space in your SD-card
 
-| Command                           | Purpose                                      |
-| --------------------------------- | -------------------------------------------- |
-| `diskutil list`                   | List disks (macOS) or `lsblk` (Linux)        |
-| `diskutil unmountDisk /dev/diskN` | Unmount SD card on macOS (`N` = disk number) |
+| Command                           | Purpose                                    |
+| --------------------------------- | ------------------------------------------ |
+| `diskutil list`                   | List all disks and identify your SD card   |
+| `diskutil unmountDisk /dev/diskN` | Unmount entire SD card (`N` = disk number) |
 
 ---
 
