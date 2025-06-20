@@ -70,6 +70,6 @@ Steps:
 
 ---
 
-Go back to **[Installation Guide](/docs/install_guide.md)**.
+Return to **[Complete Guide](/docs/base_guide.md)**.
 
 ---

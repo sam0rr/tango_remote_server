@@ -29,54 +29,62 @@ TANGO_REMOTE_SERVER/
 │   └── SetupLocal.exe
 │
 ├── docs/
-│   ├── components/
-│   │   ├── _images/
-│   │   │   ├── install_dependencies_images/
-│   │   │   ├── install_services_images/
-│   │   │   ├── install_sitrad_images/
-│   │   │   ├── troubleshooting_images/
-│   │   ├── install_dependencies.md
-│   │   ├── install_services.md
-│   │   ├── install_sitrad.md
-│   │   └── troubleshooting.md
-│   └── install_guide.md
+│   ├── base_guide.md                     ← High-level overview & “Complete Guide”
+│   └── components/
+│       ├── complete_installation/        ← End-to-end install steps
+│       │   ├── install_dependencies.md
+│       │   ├── install_services.md
+│       │   ├── install_sitrad.md
+│       │   └── troubleshooting.md
+│       │
+│       └── setup_image/                  ← Image-creation & clone procedures
+│           ├── create_image.md
+│           ├── prepare_image.md
+│           ├── prepare_image.md
+│           └── first_boot_image.md
 │
 ├── scripts/
 │   ├── setup_bash/
-│   │   ├── kill_services.sh              ← Removes systemd services
-│   │   └── setup_services.sh             ← Creates systemd services
-│   ├── sitrad/
-│   │   ├── send_ctrl_l_to_sitrad.sh      ← Sends Ctrl+L to window after load
-│   │   └── setup_sitrad.sh               ← Launch Wine + Sitrad under xserver-xorg-video-dummy
+│   │   ├── kill_services.sh              ← Stops & cleans up user services
+│   │   ├── prepare_image.sh              ← Prepares clonable SD-card image
+│   │   └── setup_services.sh             ← Installs per-user systemd units
+│   │
+│   └── sitrad/
+│       ├── send_ctrl_l_to_sitrad.sh      ← Send Ctrl+L after Sitrad loads
+│       └── setup_sitrad.sh               ← Launches Wine + Sitrad under dummy X
 │
 ├── send_to_tb/
-│   ├── main.py                           ← Entrypoint
-│   ├── .env                              ← Environment config (you need to implement)
+│   ├── main.py                           ← Entry-point for telemetry exporter
+│   ├── .env                              ← You fill in your ThingsBoard token, etc.
+│   │
 │   ├── clients/
 │   │   ├── __init__.py
-│   │   ├── http_client.py
-│   │   └── thingsboard_client.py
+│   │   ├── http_client.py                ← Robust HTTP with rate-limit & retry
+│   │   └── thingsboard_client.py         ← ThingsBoard-specific wrapper
+│   │
 │   ├── fetchers/
 │   │   ├── __init__.py
-│   │   ├── data_fetcher.py
-│   │   └── sitrad_data_fetcher.py
+│   │   ├── data_fetcher.py               ← Base DataFetcher interface
+│   │   └── sitrad_data_fetcher.py        ← SQLite-DB polling implementation
+│   │
 │   ├── launcher/
 │   │   ├── __init__.py
-│   │   └── send_launcher.py
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   ├── config.py
-│   │   ├── db/
-│   │   │   ├── db_cleaner.py             ← Deletes rows after successful sends
-│   │   │   └── db_connect.py             ← get_sqlite_connection() helper
-│   │   └── log/
-│   │       ├── log_setup.py              ← Initializes logging from .env
-│   │       └── log_cleaner.py            ← Deletes old logs
-│   └── __init__.py
+│   │   └── send_launcher.py              ← Batching & dispatch orchestration
+│   │
+│   └── utils/
+│       ├── __init__.py
+│       ├── config.py                     ← Loads & validates `.env`
+│       │
+│       ├── db/
+│       │   ├── db_cleaner.py             ← Purges sent rows
+│       │   └── db_connect.py             ← `get_sqlite_connection()`
+│       │
+│       └── log/
+│           ├── log_setup.py              ← Configures Python & journald rotation
+│           └── log_cleaner.py            ← Trims old log files
 │
 ├── .gitignore
-└── README.md                             ← You're here
-
+└── README.md                             ← You are here!
 ```
 
 ---
@@ -91,6 +99,6 @@ TANGO_REMOTE_SERVER/
 
 # Installation & Configuration Guide
 
-Follow the full setup guide here: **[Installation Guide](docs/install_guide.md)**.
+Follow the full setup guide here: **[Complete Guide](docs/base_guide.md)**.
 
 ---

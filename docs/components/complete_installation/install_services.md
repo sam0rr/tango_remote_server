@@ -1,5 +1,6 @@
 
 # Step 3 — Install Services
+
 ---
 
 ## Prerequisites
@@ -7,8 +8,8 @@
 - Access to ThingsBoard Cloud (device token)  
 - (Already installed if steps were followed correctly)
 
-| Package                       | Purpose                                             | Install Command                                      |
-|-------------------------------|-----------------------------------------------------|------------------------------------------------------|
+| Package                      | Purpose                                             | Install Command                                      |
+|------------------------------|-----------------------------------------------------|------------------------------------------------------|
 | **Python 3.8 + pip**         | Runs telemetry scripts                              | `sudo apt install -y python3 python3-venv`           |
 | **xserver-xorg-video-dummy** | Real X server on `:1` without GPU / monitor         | `sudo apt install -y xserver-xorg-video-dummy`       |
 | **xserver-xorg-legacy**      | Grants TTY permissions for headless Xorg sessions   | `sudo apt install -y xserver-xorg-legacy`            |
@@ -99,6 +100,7 @@ chmod +x scripts/sitrad/setup_sitrad.sh
 chmod +x scripts/sitrad/send_ctrl_l_to_sitrad.sh
 chmod +x scripts/setup_bash/setup_services.sh
 chmod +x scripts/setup_bash/kill_services.sh
+chmod +x scripts/setup_bash/prepare_image.sh
 ```
 
 ---

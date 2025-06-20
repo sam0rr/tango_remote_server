@@ -23,6 +23,8 @@ Once open:
 4. Select install 
 5. Wait for installation 
 
+---
+
 ## 2.2 Install Sitrad 4.13
 
 ```bash

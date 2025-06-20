@@ -41,7 +41,6 @@ sudo tailscaled --cleanup || true
 # 4) Final notice before shutdown
 echo
 echo "Image is now clean and ready to clone."
-
 echo
 echo "  - The system will shut down in:"
 for i in {5..1}; do
