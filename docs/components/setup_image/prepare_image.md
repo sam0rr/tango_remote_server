@@ -15,6 +15,7 @@ The `prepare_image.sh` script cleans and finalizes the system **before** creatin
 ## 1.1 Make the script executable (if not already)
 
    ```bash
+   cd ~/tango_remote_server
    chmod +x scripts/setup_bash/prepare_image.sh
    ```
 
@@ -23,6 +24,7 @@ The `prepare_image.sh` script cleans and finalizes the system **before** creatin
 ## 1.2 Run the script as your normal user
 
    ```bash
+   cd ~/tango_remote_server
    ./scripts/setup_bash/prepare_image.sh
    ```
 
