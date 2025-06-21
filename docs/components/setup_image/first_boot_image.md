@@ -4,6 +4,7 @@
 ---
 
 ## 4.1 Boot the target device
+
 Insert the SD card into the Raspberry Pi (or ARM64 board) and power it on.
 
 ---
@@ -20,6 +21,7 @@ sudo tailscale up --ssh
 
 ## 4.3 Update the real device token
 
+From https://thingsboard.cloud/ devices.
 ```bash
 nano ~/tango_remote_server/send_to_tb/.env
 ```
