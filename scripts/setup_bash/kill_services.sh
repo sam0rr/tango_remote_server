@@ -66,7 +66,7 @@ fi
 
 # 7) Delete residual Xorg log files
 echo "Deleting residual Xorg log files..."
-rm -f ~/.local/share/xorg/Xorg.1.log ~/.xsession-errors ~/.Xauthority || true
+rm -f ~/.local/share/xorg/Xorg.1.log ~/.xsession-errors* ~/.Xauthority || true
 
 # 8) Reload systemd user daemon
 echo "Reloading systemd user daemon..."
