@@ -7,18 +7,21 @@ set -euo pipefail
 #  • Stops and disables sitrad.service
 #  • Stops and disables send_to_tb.timer + service
 #  • Removes service files from ~/.config/systemd/user
-#  • Deletes Xorg dummy config
 #  • Deletes journald retention drop-in
-#  • Reloads systemd and systemd-journald, disables linger
+#  • Removes Xwrapper.config
+#  • Deletes Xorg dummy config
+#  • Deletes residual Xorg log files
+#  • Reloads systemd and disables linger
 ###############################################################################
 
 UNIT_DIR="$HOME/.config/systemd/user"
-DUMMY_CONF="/etc/X11/xorg.conf.d/10-dummy.conf"
 RETENTION_DROPIN="/etc/systemd/journald.conf.d/00-retention.conf"
+XWRAPPER_CONF="/etc/X11/Xwrapper.config"
+DUMMY_CONF="/etc/X11/xorg.conf.d/10-dummy.conf"
 
 echo "Uninstalling Services..."
 
-# Kill wine server (if running)
+# Kill Wine server (if running)
 echo "Stopping Wine server…"
 wineserver -k &> /dev/null || true
 
@@ -27,10 +30,6 @@ echo "Stopping and disabling display.service..."
 systemctl --user stop display.service 2>/dev/null || true
 systemctl --user disable display.service 2>/dev/null || true
 rm -f "$UNIT_DIR/display.service"
-
-# Delete Xorg dummy configuration
-echo "Deleting Xorg dummy configuration: $DUMMY_CONF"
-sudo rm -f "$DUMMY_CONF"
 
 # 2) Stop & disable sitrad.service
 echo "Stopping and disabling sitrad.service..."
@@ -53,15 +52,31 @@ if [ -f "$RETENTION_DROPIN" ]; then
   sudo systemctl restart systemd-journald
 fi
 
-# 5) Reload systemd user daemon
+# 5) Remove Xwrapper.config
+if [ -f "$XWRAPPER_CONF" ]; then
+  echo "Removing Xwrapper.config: $XWRAPPER_CONF"
+  sudo rm -f "$XWRAPPER_CONF"
+fi
+
+# 6) Delete Xorg dummy configuration
+if [ -f "$DUMMY_CONF" ]; then
+  echo "Deleting Xorg dummy configuration: $DUMMY_CONF"
+  sudo rm -f "$DUMMY_CONF"
+fi
+
+# 7) Delete residual Xorg log files
+echo "Deleting residual Xorg log files..."
+rm -f ~/.local/share/xorg/Xorg.1.log ~/.xsession-errors ~/.Xauthority || true
+
+# 8) Reload systemd user daemon
 echo "Reloading systemd user daemon..."
 systemctl --user daemon-reload
 
-# 6) Disable linger for user
+# 9) Disable linger for user
 echo "Disabling linger for user $(whoami)..."
 sudo loginctl disable-linger "$(whoami)" || true
 
-# 7) Final summary
+# 10) Final summary
 cat <<EOF
 
 Uninstallation complete.
