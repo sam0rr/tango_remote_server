@@ -41,8 +41,8 @@ ls -l /dev/serial/by-id/      # should list FT232 device
 ```bash
 sudo apt install -y python3 python3-venv \
     xdotool xserver-xorg-video-dummy \
-    modemmanager network-manager curl \
-    lightdm-settings
+    xserver-xorg-legacy modemmanager \
+    network-manager curl lightdm-settings
 ```
 
 > **Enable graphical autologin (LightDM)**  
@@ -52,17 +52,6 @@ sudo apt install -y python3 python3-venv \
 >    ```  
 > 2. Enter the password (`tango`), go to the **Users** tab.  
 > 3. Tick **Automatic login**, choose **tango** as the username, then click **Save**.
-
-> **For Armbian**  
-> `xserver-xorg-legacy` is **required** so headless Xorg can get VT permissions.  
-> The install script will add it automatically if it’s missing, but you can do it now:
-> ```bash
-> sudo apt install -y xserver-xorg-legacy
-> sudo tee /etc/X11/Xwrapper.config >/dev/null <<'EOF'
-> allowed_users=anybody
-> needs_root_rights=yes
-> EOF
-> ```
 
 ### Install Tailscale
 
