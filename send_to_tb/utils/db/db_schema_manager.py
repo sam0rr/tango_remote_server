@@ -49,9 +49,16 @@ def _add_time_column(cursor, table: str, column: str) -> None:
     Ensure the time-column exists (INTEGER, default 0) on the given table.
     This will backfill any missing rows to 0, so we can safely apply the trigger next.
     """
-    sql = f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} INTEGER DEFAULT 0;"
-    cursor.execute(sql)
-    logger.info("Ensured column '%s' exists on '%s'", column, table)
+    
+    cursor.execute(f"PRAGMA table_info({table});")
+    existing_columns = {row[1] for row in cursor.fetchall()}
+    
+    if column in existing_columns:
+        logger.info("Column '%s' already exists on '%s'", column, table)
+    else:
+        sql = f"ALTER TABLE {table} ADD COLUMN {column} INTEGER DEFAULT 0;"
+        cursor.execute(sql)
+        logger.info("Added column '%s' to '%s'", column, table)
 
 
 def _create_time_trigger(cursor, table: str, column: str) -> None:
@@ -71,4 +78,3 @@ def _create_time_trigger(cursor, table: str, column: str) -> None:
     """
     cursor.execute(sql)
     logger.info("Ensured trigger '%s' exists on '%s'", trigger_name, table)
-
