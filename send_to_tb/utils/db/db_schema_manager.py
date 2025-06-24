@@ -12,7 +12,7 @@ def ensure_schema(db_path: str, table: str, time_column: str, target_version: in
     PRAGMA user_version equals target_version.
     """
     try:
-        with get_sqlite_connection(db_path) as conn:
+        with get_sqlite_connection(db_path, timeout=timeout) as conn:
             cur = conn.cursor()
 
             current_version = _get_user_version(cur)
