@@ -19,7 +19,7 @@ class ThingsBoardClient(HttpClient):
         max_retry: int,
         initial_delay: float,
         max_delay: float,
-        timeout: int,
+        timeout: float,
         min_batch_size_to_split: int
     ):
         """

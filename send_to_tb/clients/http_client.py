@@ -25,7 +25,7 @@ class HttpClient:
         max_retry: int = 5,
         initial_delay: float = 0.2,
         max_delay: float = 30.0,
-        timeout: int = 10,
+        timeout: float = 10.0,
         min_batch_size_to_split: int = 1
     ):
         self.post_url = post_url

@@ -59,12 +59,12 @@ BATCH_WINDOW_SEC=2.0
 MIN_BATCH_SIZE_TO_SPLIT=1
 
 ###############################################################################
-# ▶︎ Filtering / Data cleaning
+# ▶︎ SQLite / Schema
 ###############################################################################
-# Ignore any row with a timestamp older than this value (UTC, in ms) -- 2000-01-01 UTC
-MIN_VALID_TS_MS=946684800000
 # Sqlite timeout in sec
 SQLITE_TIMEOUT_SEC=30
+# Sqlite schema version for TELEMETRY_TABLE update
+SCHEMA_VERSION=1
 
 ###############################################################################
 # ▶︎ Table names

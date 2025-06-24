@@ -33,8 +33,8 @@ def build_launcher(cfg: Config) -> SendToLauncher:
 
     fetcher = SitradDataFetcher(
         db_path=cfg.db_path,
-        min_ts=cfg.min_valid_ts_ms,
         timeout=cfg.sqlite_timeout_sec,
+        schema_version=cfg.schema_version,
         tables=tables
     )
 

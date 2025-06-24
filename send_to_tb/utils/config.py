@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-get = os.getenv  # Global alias for conciseness (used throughout the config loader)
+get = os.getenv
 
 @dataclass(frozen=True)
 class Config:
@@ -25,13 +25,13 @@ class Config:
     max_retry: int
     initial_delay_sec: float
     max_delay_sec: float
-    post_timeout_sec: int
+    post_timeout_sec: float
     batch_window_sec: float
     min_batch_size_to_split: int
 
-    # ▶︎ Filtering / Data cleaning
-    min_valid_ts_ms: int
-    sqlite_timeout_sec: int
+    # ▶︎ SQLite / Schema
+    sqlite_timeout_sec: float
+    schema_version: int
 
     # ▶︎ Table names
     telemetry_table: str
@@ -51,7 +51,7 @@ class Config:
             **cls._load_credentials(),
             **cls._load_paths(),
             **cls._load_telemetry(),
-            **cls._load_filtering(),
+            **cls._load_sqlite_schema(),
             **cls._load_tables(),
             **cls._load_logging()
         )
@@ -94,13 +94,13 @@ class Config:
         }
 
     @staticmethod
-    def _load_filtering() -> dict:
+    def _load_sqlite_schema() -> dict:
         """
-        Load filtering rules and data cleaning thresholds.
+        Load SQLite-specific configuration: timeout and schema version.
         """
         return {
-            "min_valid_ts_ms": int(get("MIN_VALID_TS_MS", "946684800000")),
             "sqlite_timeout_sec": int(get("SQLITE_TIMEOUT_SEC", "30")),
+            "schema_version": int(get("SCHEMA_VERSION", "1")),
         }
 
     @staticmethod
