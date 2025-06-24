@@ -7,7 +7,7 @@ from utils.db.db_connect import get_sqlite_connection
 
 logger = logging.getLogger(__name__)
 
-def delete_rows(db_path: str, table_name: str, rowids: List[int], timeout: float = 30.0) -> None:
+def delete_rows(db_path: str, table_name: str, rowids: List[int], timeout: float) -> None:
     """
     Deletes rows from the table where rowid is in the given list,
     then compacts the database using VACUUM.
@@ -22,7 +22,7 @@ def delete_rows(db_path: str, table_name: str, rowids: List[int], timeout: float
     vacuum_database(db_path, timeout)
 
 
-def delete_all_rows(db_path: str, table_name: str, timeout: float = 30.0) -> None:
+def delete_all_rows(db_path: str, table_name: str, timeout: float) -> None:
     """
     Deletes all rows from the specified table.
     Does nothing if the table is already empty.

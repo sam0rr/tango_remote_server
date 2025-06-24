@@ -38,7 +38,7 @@ class SitradDataFetcher(DataFetcher):
         self,
         db_path: str,
         timeout: float,
-        schema_version: schema_version,
+        schema_version: str,
         tables: dict
     ):
         """
@@ -52,7 +52,7 @@ class SitradDataFetcher(DataFetcher):
         super().__init__()
         self.db_path = db_path
         self.timeout = timeout
-        self.shema_version = shema_version
+        self.schema_version = schema_version
         self.tables = tables
 
     def fetch_rows(self) -> list[sqlite3.Row]:

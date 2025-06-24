@@ -32,6 +32,7 @@ class Config:
     # ▶︎ SQLite / Schema
     sqlite_timeout_sec: float
     schema_version: int
+    time_column_name: str
 
     # ▶︎ Table names
     telemetry_table: str
@@ -86,9 +87,9 @@ class Config:
         return {
             "max_batch_size": int(get("MAX_BATCH_SIZE", "25")),
             "max_retry": int(get("MAX_RETRY", "5")),
-            "initial_delay_sec": int(get("INITIAL_DELAY_MS", "200")) / 1000.0,
+            "initial_delay_sec": float(get("INITIAL_DELAY_MS", "200")) / 1000.0,
             "max_delay_sec": float(get("MAX_DELAY_SEC", "30.0")),
-            "post_timeout_sec": int(get("POST_TIMEOUT", "10")),
+            "post_timeout_sec": float(get("POST_TIMEOUT", "10.0")),
             "batch_window_sec": float(get("BATCH_WINDOW_SEC", "2.0")),
             "min_batch_size_to_split": int(get("MIN_BATCH_SIZE_TO_SPLIT", "1")),
         }
@@ -96,11 +97,12 @@ class Config:
     @staticmethod
     def _load_sqlite_schema() -> dict:
         """
-        Load SQLite-specific configuration: timeout and schema version.
+        Load SQLite-specific configuration: timeout, schema version, and time column name.
         """
         return {
-            "sqlite_timeout_sec": int(get("SQLITE_TIMEOUT_SEC", "30")),
+            "sqlite_timeout_sec": float(get("SQLITE_TIMEOUT_SEC", "30.0")),
             "schema_version": int(get("SCHEMA_VERSION", "1")),
+            "time_column_name": get("TIME_COLUMN_NAME", "inserted_ts_ms"),
         }
 
     @staticmethod

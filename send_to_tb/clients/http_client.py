@@ -22,11 +22,11 @@ class HttpClient:
     def __init__(
         self,
         post_url: str,
-        max_retry: int = 5,
-        initial_delay: float = 0.2,
-        max_delay: float = 30.0,
-        timeout: float = 10.0,
-        min_batch_size_to_split: int = 1
+        max_retry: int,
+        initial_delay: float,
+        max_delay: float,
+        timeout: float,
+        min_batch_size_to_split: int
     ):
         self.post_url = post_url
         self.max_retry = max_retry

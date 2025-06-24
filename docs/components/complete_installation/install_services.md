@@ -61,10 +61,12 @@ MIN_BATCH_SIZE_TO_SPLIT=1
 ###############################################################################
 # ▶︎ SQLite / Schema
 ###############################################################################
-# Sqlite timeout in sec
+# SQLite connection timeout in seconds
 SQLITE_TIMEOUT_SEC=30
-# Sqlite schema version for TELEMETRY_TABLE update
+# SQLite schema version for telemetry table migration
 SCHEMA_VERSION=1
+# Name of the column to store insert timestamp (ms)
+TIME_COLUMN_NAME=inserted_ts_ms
 
 ###############################################################################
 # ▶︎ Table names

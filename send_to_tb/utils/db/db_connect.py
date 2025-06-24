@@ -2,7 +2,7 @@
 
 import sqlite3
 
-def get_sqlite_connection(db_path: str, timeout: float = 30.0) -> sqlite3.Connection:
+def get_sqlite_connection(db_path: str, timeout: float) -> sqlite3.Connection:
     """
     Opens a SQLite connection with WAL mode, NORMAL sync, and Row factory enabled.
     Returns the configured sqlite3.Connection object.

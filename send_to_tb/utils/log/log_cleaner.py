@@ -5,7 +5,7 @@ import time
 import logging
 from pathlib import Path
 
-def purge_old_logs(log_dir: str | Path, max_age_days: int = 7):
+def purge_old_logs(log_dir: str | Path, max_age_days: int):
     """
     Delete .log files in log_dir older than `max_age_days`.
     """

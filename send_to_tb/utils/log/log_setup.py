@@ -4,7 +4,7 @@ import sys
 import logging
 from pathlib import Path
 
-def setup_logging(pkg_dir: Path, level: str = "INFO", log_filename: str = "sitrad_push.log") -> logging.Logger:
+def setup_logging(pkg_dir: Path, level: str, log_filename: str) -> logging.Logger:
     """
     Configure logging with given level and output path.
     Logs are written to logs/<LOG_FILE> and also streamed to console.
