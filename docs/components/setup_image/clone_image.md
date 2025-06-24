@@ -14,15 +14,15 @@
 
 ### Linux:
 
-| Command                    | Purpose                              |
-| -------------------------- | ------------------------------------ |
-| `lsblk` or `sudo fdisk -l` | List disks and identify your SD card |
-| `sudo umount /dev/sdX*`    | Unmount all SD card partitions       |
+| Command                           | Purpose                                    |
+| ----------------------------------| -------------------------------------------|
+| `lsblk` or `sudo fdisk -l`        | List disks and identify your SD card       |
+| `sudo umount /dev/sdX*`           | Unmount entire SD card (`X` = disk number) |
 
 ### macOS:
 
 | Command                           | Purpose                                    |
-| --------------------------------- | ------------------------------------------ |
+| ----------------------------------| -------------------------------------------|
 | `diskutil list`                   | List disks and identify your SD card       |
 | `diskutil unmountDisk /dev/diskN` | Unmount entire SD card (`N` = disk number) |
 
