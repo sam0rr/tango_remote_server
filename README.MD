@@ -6,7 +6,7 @@
 
 ---
 
-This repository turns a low-cost Linux box (Raspberry Pi 3/4, Debian 12 PC, etc.) into a self-contained
+This repository turns a low-cost Linux box (Raspberry Pi 3/4, Debian 12 PC (Unbunto), etc.) into a self-contained
 gateway that :
 
 1. **Runs Sitrad 4.13** under Wine – completely head-less, thanks to a **dummy Xorg server** (no
