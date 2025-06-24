@@ -9,7 +9,7 @@ set -euo pipefail
 #  • Removes service files from ~/.config/systemd/user
 #  • Deletes journald retention drop-in
 #  • Removes Xwrapper.config
-#  • Deletes Xorg dummy config
+#  • Deletes Xorg dummy config (isolated)
 #  • Deletes residual Xorg log files
 #  • Reloads systemd and disables linger
 ###############################################################################
@@ -17,7 +17,7 @@ set -euo pipefail
 UNIT_DIR="$HOME/.config/systemd/user"
 RETENTION_DROPIN="/etc/systemd/journald.conf.d/00-retention.conf"
 XWRAPPER_CONF="/etc/X11/Xwrapper.config"
-DUMMY_CONF="/etc/X11/xorg.conf.d/10-dummy.conf"
+DUMMY_CONF="/etc/X11/xorg.dummy.d/10-dummy.conf"
 
 echo "Uninstalling Services..."
 
@@ -58,10 +58,12 @@ if [ -f "$XWRAPPER_CONF" ]; then
   sudo rm -f "$XWRAPPER_CONF"
 fi
 
-# 6) Delete Xorg dummy configuration
+# 6) Delete Xorg dummy configuration (isolated)
 if [ -f "$DUMMY_CONF" ]; then
-  echo "Deleting Xorg dummy configuration: $DUMMY_CONF"
+  echo "Deleting isolated Xorg dummy configuration: $DUMMY_CONF"
   sudo rm -f "$DUMMY_CONF"
+  # Optionally remove the directory if now empty
+  sudo rmdir --ignore-fail-on-non-empty "$(dirname "$DUMMY_CONF")" 2>/dev/null || true
 fi
 
 # 7) Delete residual Xorg log files
@@ -77,7 +79,7 @@ echo "Disabling linger for user $(whoami)..."
 sudo loginctl disable-linger "$(whoami)" || true
 
 # 10) Final summary
-cat <<EOF
+cat <<'EOF'
 
 Uninstallation complete.
 Remaining user unit files in $UNIT_DIR:
