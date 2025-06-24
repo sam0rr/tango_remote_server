@@ -35,6 +35,7 @@ def build_launcher(cfg: Config) -> SendToLauncher:
         db_path=cfg.db_path,
         timeout=cfg.sqlite_timeout_sec,
         schema_version=cfg.schema_version,
+        time_column=cfg.time_column_name,
         tables=tables
     )
 

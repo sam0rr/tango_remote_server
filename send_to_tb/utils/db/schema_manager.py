@@ -33,22 +33,32 @@ def ensure_schema(db_path: str, table: str, time_column: str, target_version: in
 
 
 def _get_user_version(cursor) -> int:
+    """Read PRAGMA user_version from the database."""
     cursor.execute("PRAGMA user_version;")
     return cursor.fetchone()[0]
 
 
 def _set_user_version(cursor, version: int) -> None:
+    """Set PRAGMA user_version to the given integer."""
     cursor.execute(f"PRAGMA user_version = {version};")
     logger.debug("Set PRAGMA user_version to %d", version)
 
 
 def _add_time_column(cursor, table: str, column: str) -> None:
+    """
+    Ensure the time-column exists (INTEGER, default 0) on the given table.
+    This will backfill any missing rows to 0, so we can safely apply the trigger next.
+    """
     sql = f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} INTEGER DEFAULT 0;"
     cursor.execute(sql)
     logger.info("Ensured column '%s' exists on '%s'", column, table)
 
 
 def _create_time_trigger(cursor, table: str, column: str) -> None:
+    """
+    Create an AFTER INSERT trigger that stamps new rows'
+    `{column}` with the current time in milliseconds.
+    """
     trigger_name = f"set_{column}_on_{table}"
     sql = f"""
       CREATE TRIGGER IF NOT EXISTS {trigger_name}
@@ -61,3 +71,4 @@ def _create_time_trigger(cursor, table: str, column: str) -> None:
     """
     cursor.execute(sql)
     logger.info("Ensured trigger '%s' exists on '%s'", trigger_name, table)
+
