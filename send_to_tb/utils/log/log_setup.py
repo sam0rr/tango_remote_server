@@ -4,7 +4,7 @@ import sys
 import logging
 from pathlib import Path
 
-def setup_logging(pkg_dir: Path, level: str, log_filename: str) -> logging.Logger:
+def setup_logging(pkg_dir: Path, level: str, log_file: str) -> logging.Logger:
     """
     Configure logging with given level and output path.
     Logs are written to logs/<LOG_FILE> and also streamed to console.
@@ -13,7 +13,7 @@ def setup_logging(pkg_dir: Path, level: str, log_filename: str) -> logging.Logge
 
     logs_dir = pkg_dir / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
-    log_path = logs_dir / log_filename
+    log_path = logs_dir / log_file
 
     logging.basicConfig(
         level=log_level,
