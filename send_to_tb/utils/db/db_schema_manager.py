@@ -22,6 +22,7 @@ def ensure_schema(db_path: str, table: str, time_column: str, target_version: in
                 logger.info("Migrating table '%s' from v%d → v%d", table, current_version, target_version)
                 _add_time_column(cur, table, time_column)
                 _create_time_trigger(cur, table, time_column)
+                _backfill_time_column(cur, table, time_column)
                 _set_user_version(cur, target_version)
                 conn.commit()
             else:
@@ -47,12 +48,10 @@ def _set_user_version(cursor, version: int) -> None:
 def _add_time_column(cursor, table: str, column: str) -> None:
     """
     Ensure the time-column exists (INTEGER, default 0) on the given table.
-    This will backfill any missing rows to 0, so we can safely apply the trigger next.
     """
-    
     cursor.execute(f"PRAGMA table_info({table});")
     existing_columns = {row[1] for row in cursor.fetchall()}
-    
+
     if column in existing_columns:
         logger.info("Column '%s' already exists on '%s'", column, table)
     else:
@@ -78,3 +77,16 @@ def _create_time_trigger(cursor, table: str, column: str) -> None:
     """
     cursor.execute(sql)
     logger.info("Ensured trigger '%s' exists on '%s'", trigger_name, table)
+
+
+def _backfill_time_column(cursor, table: str, column: str) -> None:
+    """
+    Backfill the time-column for existing rows where it is still zero.
+    """
+    sql = f"""
+        UPDATE {table}
+           SET {column} = CAST(strftime('%s','now') AS INTEGER) * 1000
+         WHERE {column} = 0;
+    """
+    cursor.execute(sql)
+    logger.info("Backfilled %d rows in '%s' where '%s'=0", cursor.rowcount, table, column)
