@@ -79,7 +79,7 @@ echo "Disabling linger for user $(whoami)..."
 sudo loginctl disable-linger "$(whoami)" || true
 
 # 10) Final summary
-cat <<'EOF'
+cat <<EOF
 
 Uninstallation complete.
 Remaining user unit files in $UNIT_DIR:
