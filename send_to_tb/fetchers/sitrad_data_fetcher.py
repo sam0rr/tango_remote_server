@@ -2,8 +2,7 @@
 """
 sitrad_data_fetcher.py — SQLite-based DataFetcher for TC-900 logs.
 Ensures the schema is migrated, then fetches all rows each run,
-builds a payload containing exactly the fields:
-Temp1, Temp2, defr, fans, refr, dig1, dig2, ts.
+builds a payload containing exactly the wanted fields.
 Rows are expected to be deleted by the caller after processing.
 """
 
@@ -13,12 +12,19 @@ import logging
 import sqlite3
 from .data_fetcher import DataFetcher
 from utils.db.db_connect import get_sqlite_connection
-from utils.db.schema_manager import ensure_schema
+from utils.db.db_schema_manager import ensure_schema
 
 log = logging.getLogger("sitrad_data_fetcher")
 
 
 class SitradDataFetcher(DataFetcher):
+    """
+    Concrete DataFetcher for the tc900log table in a SQLite database.
+    On init, ensures the time‐column and trigger are in place.
+    fetch_rows() retrieves all rows Ordered by rowid.
+    build_payload() reads the reliable insert‐timestamp column.
+    """
+
     SQL_QUERY_TEMPLATE = """
         SELECT rowid,
                ROUND(Temp1/10.0, 2) AS t1,
@@ -38,22 +44,26 @@ class SitradDataFetcher(DataFetcher):
         time_column: str,
         tables: dict
     ):
+        """
+        :param db_path:         path to the SQLite database file
+        :param timeout:         SQLite connection timeout in seconds
+        :param schema_version:  PRAGMA user_version target for migration
+        :param time_column:     name of the INTEGER column holding insert‐timestamp (ms)
+        :param tables:          dict with 'telemetry' → telemetry table name
+        """
         super().__init__()
         self.db_path = db_path
         self.timeout = timeout
         self.schema_version = schema_version
         self.time_column = time_column
 
-        # pull your telemetry table name
         self.telemetry_table = tables.get("telemetry", "tc900log")
 
-        # build the final SQL
         self._fetch_sql = self.SQL_QUERY_TEMPLATE.format(
             table=self.telemetry_table,
             time_column=self.time_column
         )
 
-        # ensure schema/migrations only needs the table name once
         ensure_schema(
             db_path=self.db_path,
             table=self.telemetry_table,
@@ -82,6 +92,10 @@ class SitradDataFetcher(DataFetcher):
             return []
 
     def build_payload(self, row: sqlite3.Row) -> dict:
+        """
+        Convert a database row into a telemetry payload dict.
+        Returns {'rowid', 'ts', 'values'} dict.
+        """
         ts = row["ts"]
         values = {
             "Temp1": self._clean_value(row["t1"]),
@@ -97,6 +111,10 @@ class SitradDataFetcher(DataFetcher):
 
     @staticmethod
     def _clean_value(value) -> float | int | None:
+        """
+        Clean numeric values, converting NaN or infinite floats to None.
+        Returns a cleaned number or None.
+        """
         if value is None:
             return None
         if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):

@@ -77,7 +77,8 @@ TANGO_REMOTE_SERVER/
 │       │
 │       ├── db/
 │       │   ├── db_cleaner.py             ← Purges sent rows
-│       │   └── db_connect.py             ← `get_sqlite_connection()`
+│       │   ├── db_connect.py             ← `get_sqlite_connection()`
+│       │   └── db_schema_manager         ← Ensure that the telemetry table has a time column & trigger
 │       │
 │       └── log/
 │           ├── log_setup.py              ← Configures Python logs

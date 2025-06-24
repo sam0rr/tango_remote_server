@@ -1,4 +1,4 @@
-# utils/db/schema_manager.py
+# utils/db/db_schema_manager.py
 
 import logging
 from sqlite3 import Error
