@@ -41,12 +41,13 @@
    ### Linux:
 
    ```bash
-   sudo dd if=/dev/sdX of=./rpicfg_backup.img bs=4M conv=noerror,sync status=progress
+   sudo dd if=/dev/sdX of=./rpicfg_backup.img bs=4M conv=noerror,sync,sparse status=progress
    ```
 
    * Replace `X` with your device letter (e.g., `b` for `/dev/sdb`).
    * `bs=4M` improves copy speed.
    * `conv=noerror,sync` continues on read errors and pads blocks.
+   * `conv=sparse` punches holes for zero blocks to save space.
    * `status=progress` displays real-time progress.
 
    ### macOS:
