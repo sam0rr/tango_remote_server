@@ -19,7 +19,7 @@ DUMMY_CONF_DIR="/etc/X11/xorg.dummy.d"
 # 0) Create journald retention drop-in so logs auto-prune
 echo "Configuring journal retention..."
 sudo mkdir -p /etc/systemd/journald.conf.d
-sudo tee /etc/systemd/journald.conf.d/00-retention.conf >/dev/null <<'EOF'
+sudo tee /etc/systemd/journald.conf.d/00-retention.conf >/dev/null <<EOF
 [Journal]
 Storage=persistent
 SystemMaxUse=200M
@@ -47,7 +47,7 @@ fi
 
 # 1) Install Xorg conf rights configuration
 echo "Installing Xorg conf rights configuration..."
-sudo tee /etc/X11/Xwrapper.config >/dev/null <<'EOF'
+sudo tee /etc/X11/Xwrapper.config >/dev/null <<EOF
 allowed_users=anybody
 needs_root_rights=yes
 EOF
@@ -56,7 +56,7 @@ echo "/etc/X11/Xwrapper.config created"
 # 2) Prepare isolated dummy config directory
 echo "Preparing isolated dummy config directory..."
 sudo mkdir -p "$DUMMY_CONF_DIR"
-sudo tee "$DUMMY_CONF_DIR/10-dummy.conf" >/dev/null <<'EOF'
+sudo tee "$DUMMY_CONF_DIR/10-dummy.conf" >/dev/null <<EOF
 Section "Device"
     Identifier  "DummyDevice"
     Driver      "dummy"
@@ -86,7 +86,7 @@ mkdir -p "$UNIT_DIR"
 
 # 4) Create display.service: Xorg dummy
 echo "Creating display.service for dummy..."
-cat > "$UNIT_DIR/display.service" <<'EOF'
+cat > "$UNIT_DIR/display.service" <<EOF
 [Unit]
 Description=Headless Xorg (dummy) for Sitrad
 After=network.target
@@ -106,7 +106,7 @@ EOF
 # 5) Create sitrad.service (depends on display)
 echo "Creating sitrad.service..."
 SITRAD_SCRIPT="$BASEDIR/scripts/sitrad/setup_sitrad.sh"
-cat > "$UNIT_DIR/sitrad.service" <<'EOF'
+cat > "$UNIT_DIR/sitrad.service" <<EOF
 [Unit]
 Description=Run Sitrad 4.13 under Wine (headless)
 After=network.target display.service
@@ -129,7 +129,7 @@ EOF
 # 6) Create send_to_tb.service (push telemetry)
 echo "Creating send_to_tb.service..."
 SEND_SCRIPT="$BASEDIR/send_to_tb/main.py"
-cat > "$UNIT_DIR/send_to_tb.service" <<'EOF'
+cat > "$UNIT_DIR/send_to_tb.service" <<EOF
 [Unit]
 Description=Send telemetry to ThingsBoard
 
@@ -145,7 +145,7 @@ EOF
 
 # 7) Create send_to_tb.timer (every 30 seconds)
 echo "Creating send_to_tb.timer..."
-cat > "$UNIT_DIR/send_to_tb.timer" <<'EOF'
+cat > "$UNIT_DIR/send_to_tb.timer" <<EOF
 [Unit]
 Description=Run send_to_tb.service every 30 seconds
 
@@ -173,7 +173,7 @@ echo "Enabling linger for user $(whoami)..."
 sudo loginctl enable-linger "$(whoami)"
 
 # 10) Final summary
-cat <<'EOF'
+cat <<EOF
 
 Services installed and running:
    - journald retention policy (200M / 7d)
