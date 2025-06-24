@@ -58,13 +58,13 @@ def build_launcher(cfg: Config) -> SendToLauncher:
 def main():
     """
     Entrypoint: load .env, configure logger, purge old logs,
-    then start the data-push loop to ThingsBoard.
+    then start the data-push loop to ThingsBoard Cloud.
     """
     load_dotenv(dotenv_path)
 
     try:
         cfg = Config.from_env()
-        log = setup_logging(pkg_dir, level=cfg.log_level)
+        log = setup_logging(pkg_dir, level=cfg.log_level, log_file=cfg.log_file)
         purge_old_logs(logs_path, max_age_days=cfg.purge_log_days)
 
         launcher = build_launcher(cfg)
