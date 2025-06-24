@@ -56,6 +56,7 @@ class SitradDataFetcher(DataFetcher):
         self.timeout = timeout
         self.schema_version = schema_version
         self.time_column = time_column
+        self.tables = tables
 
         self.telemetry_table = tables.get("telemetry", "tc900log")
 
