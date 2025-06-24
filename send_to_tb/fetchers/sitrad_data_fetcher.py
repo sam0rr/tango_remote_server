@@ -21,7 +21,7 @@ class SitradDataFetcher(DataFetcher):
     """
     Concrete DataFetcher for the tc900log table in a SQLite database.
     On init, ensures the time‐column and trigger are in place.
-    fetch_rows() retrieves all rows Ordered by rowid.
+    fetch_rows() retrieves all rows ordered by rowid.
     build_payload() reads the reliable insert‐timestamp column.
     """
 
