@@ -5,8 +5,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 ###############################################################################
 # setup_sitrad.sh — Smart, refactored launcher for Sitrad 4.13 on Raspberry Pi
 # • Waits for Xorg (dummy) session started via display.service
-# • Detects FTDI adapter and maps to Wine COM1 via registry
-# • Disables COM2–COM20 via registry to prevent Wine conflicts
+# • Detects FTDI adapter and maps to Wine COM1 via registry (reg)
 # • Adds alias sitrad4.13 to .bashrc
 # • Launches SitradLocal.exe under Wine
 # • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh
@@ -22,7 +21,6 @@ EXE_DIR="$HOME/.wine/drive_c/Program Files (x86)/Full Gauge/Sitrad"
 EXE_NAME="SitradLocal.exe"
 EXE_PATH="$EXE_DIR/$EXE_NAME"
 
-DOS_DIR="$HOME/.wine/dosdevices"
 BASHRC="$HOME/.bashrc"
 DISPLAY_NUM=":1"
 export DISPLAY="$DISPLAY_NUM"
@@ -54,7 +52,6 @@ start_x_session() {
         sleep 0.5
     done
     log "Xorg is running on $DISPLAY_NUM"
-    mkdir -p "$DOS_DIR"
 }
 
 # ── Detect FTDI adapter (USB-serial) ─────────────────────────────────────────
@@ -70,17 +67,10 @@ detect_ftdi() {
     log "Using $FTDI_DEVICE as COM1"
 }
 
-# ── Disable COM2–COM20 via Wine registry ───────────────────────────────────────
-block_ports() {
-    log "Disabling COM2–COM20 via Wine registry"
-    for n in {2..20}; do
-        wine reg add "HKLM\\Software\\Wine\\Ports" /v "COM$n" /t REG_SZ /d "" /f
-    done
-}
-
 # ── Map COM1 to the detected FTDI device via Wine registry ────────────────────
 map_com1() {
     log "Mapping COM1 → $FTDI_DEVICE via Wine registry"
+    wine reg add "HKLM\\Software\\Wine\\Ports" /f
     wine reg add "HKLM\\Software\\Wine\\Ports" /v COM1 /t REG_SZ /d "$FTDI_DEVICE" /f
 }
 
@@ -138,10 +128,6 @@ main() {
     check_dependencies
     start_x_session
     detect_ftdi
-
-    wine reg add "HKLM\\Software\\Wine\\Ports" /f
-    
-    block_ports
     map_com1
     add_alias
     launch_sitrad
