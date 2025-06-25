@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-trap 'error_handler "\$LINENO" "\$BASH_COMMAND"' ERR
+trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 
 ###############################################################################
 # setup_sitrad.sh — Smart, refactored launcher for Sitrad 4.13 on Raspberry Pi
@@ -122,7 +122,7 @@ trigger_ctrl_l() {
 
     log "Window $wid detected — waiting 90 s"
     sleep 90
-    if "\$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
+    if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
         log "Ctrl+L sent to window $wid"
     else
         log "Failed to send Ctrl+L"
