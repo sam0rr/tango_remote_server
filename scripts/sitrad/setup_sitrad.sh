@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
+trap 'error_handler "\$LINENO" "\$BASH_COMMAND"' ERR
 
 ###############################################################################
 # setup_sitrad.sh — Smart, refactored launcher for Sitrad 4.13 on Raspberry Pi
 # • Waits for Xorg (dummy) session started via display.service
-# • Detects FTDI adapter and maps to Wine COM1
-# • Blocks COM2–COM20 to prevent Wine conflicts
+# • Detects FTDI adapter and maps to Wine COM1 via registry
+# • Disables COM2–COM20 via registry to prevent Wine conflicts
 # • Adds alias sitrad4.13 to .bashrc
 # • Launches SitradLocal.exe under Wine
 # • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh
@@ -70,25 +70,24 @@ detect_ftdi() {
     log "Using $FTDI_DEVICE as COM1"
 }
 
-# ── Block COM2–COM20 to prevent Wine auto-mapping ─────────────────────────────
+# ── Disable COM2–COM20 via Wine registry ───────────────────────────────────────
 block_ports() {
-    log "Blocking COM2–COM20"
-    find "$DOS_DIR" -maxdepth 1 -type l -name 'com*' -exec rm -f {} +
+    log "Disabling COM2–COM20 via Wine registry"
     for n in {2..20}; do
-        mkdir -p "$DOS_DIR/com$n" && chmod 000 "$DOS_DIR/com$n"
+        wine reg add "HKLM\\Software\\Wine\\Ports" /v "COM$n" /t REG_SZ /d "" /f
     done
 }
 
-# ── Link COM1 to the detected FTDI device ────────────────────────────────────
+# ── Map COM1 to the detected FTDI device via Wine registry ────────────────────
 map_com1() {
-    log "Mapping COM1 → $FTDI_DEVICE"
-    ln -sf "$FTDI_DEVICE" "$DOS_DIR/com1"
+    log "Mapping COM1 → $FTDI_DEVICE via Wine registry"
+    wine reg add "HKLM\\Software\\Wine\\Ports" /v COM1 /t REG_SZ /d "$FTDI_DEVICE" /f
 }
 
-# ── Add shell alias to launch Sitrad manually ────────────────────────────────
+# ── Add shell alias to launch Sitrad manually ─────────────────────────────────
 add_alias() {
     unalias sitrad4.13 2>/dev/null || true
-    local alias_cmd="alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && wine ./$EXE_NAME && popd >/dev/null'"
+    local alias_cmd="alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && wine ./\$EXE_NAME && popd >/dev/null'"
     grep -Fq 'alias sitrad4.13=' "$BASHRC" && sed -i '/alias sitrad4\.13=/d' "$BASHRC"
     echo "$alias_cmd" >> "$BASHRC"
     eval "$alias_cmd"
@@ -106,7 +105,7 @@ launch_sitrad() {
     popd >/dev/null
 }
 
-# ── Wait for Sitrad window and send Ctrl+L ────────────────────────────────────
+# ── Wait for Sitrad window and send Ctrl+L ───────────────────────────────────
 trigger_ctrl_l() {
     log "Waiting for 'Sitrad Local' window (max 60s)..."
     local wid=""
@@ -123,7 +122,7 @@ trigger_ctrl_l() {
 
     log "Window $wid detected — waiting 90 s"
     sleep 90
-    if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
+    if "\$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
         log "Ctrl+L sent to window $wid"
     else
         log "Failed to send Ctrl+L"
@@ -139,6 +138,9 @@ main() {
     check_dependencies
     start_x_session
     detect_ftdi
+
+    wine reg add "HKLM\\Software\\Wine\\Ports" /f
+    
     block_ports
     map_com1
     add_alias
