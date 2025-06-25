@@ -87,7 +87,7 @@ map_com1() {
 # ── Add shell alias to launch Sitrad manually ─────────────────────────────────
 add_alias() {
     unalias sitrad4.13 2>/dev/null || true
-    local alias_cmd="alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && wine ./\$EXE_NAME && popd >/dev/null'"
+    local alias_cmd="alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && wine ./$EXE_NAME && popd >/dev/null'"
     grep -Fq 'alias sitrad4.13=' "$BASHRC" && sed -i '/alias sitrad4\.13=/d' "$BASHRC"
     echo "$alias_cmd" >> "$BASHRC"
     eval "$alias_cmd"
