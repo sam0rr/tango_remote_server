@@ -6,6 +6,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 # setup_sitrad.sh — Smart, refactored launcher for Sitrad 4.13 on Raspberry Pi
 # • Waits for Xorg (dummy) session started via display.service
 # • Detects FTDI adapter and maps to Wine COM1 via registry (reg)
+# • Cleans old dosdevices links
 # • Adds alias sitrad4.13 to .bashrc
 # • Launches SitradLocal.exe under Wine
 # • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh
@@ -20,7 +21,7 @@ BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EXE_DIR="$HOME/.wine/drive_c/Program Files (x86)/Full Gauge/Sitrad"
 EXE_NAME="SitradLocal.exe"
 EXE_PATH="$EXE_DIR/$EXE_NAME"
-
+DOS_DIR="$HOME/.wine/dosdevices"
 BASHRC="$HOME/.bashrc"
 DISPLAY_NUM=":1"
 export DISPLAY="$DISPLAY_NUM"
@@ -51,7 +52,7 @@ start_x_session() {
     until pgrep -f "Xorg $DISPLAY_NUM" >/dev/null; do
         sleep 0.5
     done
-    log "Xorg is running on $DISPLAY_NUM"
+    log "Xorg session on $DISPLAY_NUM is ready"
 }
 
 # ── Detect FTDI adapter (USB-serial) ─────────────────────────────────────────
@@ -65,6 +66,13 @@ detect_ftdi() {
     done
     [[ -z ${FTDI_DEVICE:-} ]] && { log "No FTDI adapter found"; exit 1; }
     log "Using $FTDI_DEVICE as COM1"
+}
+
+# ── Clear previous COM ports in dosdevices ───────────────────────────────────
+clear_com_ports() {
+    log "Clearing old COM links in $DOS_DIR"
+    mkdir -p "$DOS_DIR"
+    rm -rf "$DOS_DIR"/com*
 }
 
 # ── Map COM1 to the detected FTDI device via Wine registry ────────────────────
@@ -128,6 +136,7 @@ main() {
     check_dependencies
     start_x_session
     detect_ftdi
+    clear_com_ports
     map_com1
     add_alias
     launch_sitrad
