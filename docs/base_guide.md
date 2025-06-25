@@ -38,7 +38,7 @@ cd tango_remote_server
 
 ## Hardware Prerequisites
 
-* Raspberry Pi 4 or any ARM64-based Linux board
+* Orange/Radxa zero 2w 4gb or any ARM64-based Linux board
 * 4G LTE HAT (USB)
 * RS-485 USB converter connected to a free USB port
 * Full Gauge TC-900 connected to the RS-485 converter
