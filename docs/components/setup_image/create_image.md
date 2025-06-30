@@ -88,7 +88,7 @@ Shrink the image to its minimal size and compress it safely using **ArmbianShrin
 
    ```bash
    cd ~/Downloads
-   sudo armbianshrink.sh -Z rpicfg_backup.img
+   sudo armbianshrink.sh -Z rpicfg_backup.img rpicfg_backup_shrunk.img
    ```
 
    **Options used:**
@@ -100,14 +100,14 @@ Shrink the image to its minimal size and compress it safely using **ArmbianShrin
    * Run a filesystem check (`e2fsck`)
    * Shrink the root filesystem to its minimal size
    * Truncate the image file
-   * Compress the result to `rpicfg_backup.img.xz`
+   * Compress the result to `rpicfg_backup_shrunk.img.xz`
 
 3. **Result**
 
    The final output will be:
 
    ```bash
-   ~/Downloads/rpicfg_backup.img.xz
+   ~/Downloads/rpicfg_backup_shrunk.img.xz
    ```
 
    You can now safely store or distribute this file.
