@@ -70,14 +70,10 @@
 1. Still in `~/Downloads`, compress with maximum gzip compression:
 
    ```bash
-   xz -T0 -9e rpicfg_backup.img
+   gzip -9 rpicfg_backup.img
    ```
-  
-   * `-T0` all CPU cores.
-   * `-9`  maxmimum compression.
-   * `-e`  "extra" mode (slower but better compression ratio).
 
-2. Wait for compression to finish. The result will be `rpicfg_backup.img.xz`.
+2. Wait for compression to finish. The result will be `rpicfg_backup.img.gz`.
 
 ---
 
