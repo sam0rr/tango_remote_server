@@ -71,7 +71,7 @@ Shrink the image to its minimal size and compress it safely using **ArmbianShrin
 
 ### Requirements
 
-* macOS or Linux
+* Linux or macOS
 * Internet access to download `armbianshrink.sh`
 * Sufficient free space (at least 2× the image size)
 
