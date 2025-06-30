@@ -79,7 +79,7 @@
 
 ## 2.3 Save the image for persistence
 
-After compression, move or copy the `.img.gz` to a safe, persistent location:
+After compression, move or copy the `.img.gz` to a safe, persistent location (reliable):
 
 * **OneDrive (or other cloud)**
 * **External drive**
