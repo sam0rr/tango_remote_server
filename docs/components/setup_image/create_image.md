@@ -65,52 +65,19 @@
 
 ---
 
-## 2.2 Shrink and compress the image with ArmbianShrink
+## 2.2 Compress the image
 
-Shrink the image to its minimal size and compress it safely using **ArmbianShrink**, a lightweight tool designed for GPT-based systems like Armbian, Radxa, and Orange Pi.
-
-### Requirements
-
-* Linux or macOS
-* Internet access to download `armbianshrink.sh`
-* Sufficient free space (at least 2× the image size)
-
-1. **Download and install ArmbianShrink** (if not already installed):
+1. Still in `~/Downloads`, compress with maximum gzip compression:
 
    ```bash
-   curl -L https://raw.githubusercontent.com/dedalodaelus/ArmbianShrink/master/armbianshrink.sh \
-     -o armbianshrink.sh
-   chmod +x armbianshrink.sh
-   sudo mv armbianshrink.sh /usr/local/bin/
+   xz -T0 -9e rpicfg_backup.img
    ```
+  
+   * `-T0` all CPU cores.
+   * `-9`  maxmimum compression.
+   * `-e`  "extra" mode (slower but better compression ratio).
 
-2. **Run ArmbianShrink** from your working directory (e.g., `~/Downloads`):
-
-   ```bash
-   cd ~/Downloads
-   sudo armbianshrink.sh -Z rpicfg_backup.img rpicfg_backup_shrunk.img
-   ```
-
-   **Options used:**
-
-   * `-Z`: Shrinks the filesystem **and** compresses to `.xz`
-
-   This script will:
-
-   * Run a filesystem check (`e2fsck`)
-   * Shrink the root filesystem to its minimal size
-   * Truncate the image file
-   * Compress the result to `rpicfg_backup_shrunk.img.xz`
-
-3. **Result**
-
-   The final output will be:
-
-   ```bash
-   ~/Downloads/rpicfg_backup_shrunk.img.xz
-   ```
-
-   You can now safely store or distribute this file.
+2. Wait for compression to finish. The result will be `rpicfg_backup.img.xz`.
 
 ---
 
