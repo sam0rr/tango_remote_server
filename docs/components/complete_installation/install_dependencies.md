@@ -109,7 +109,7 @@ If your carrier is not listed, check:
 Replace **`sp.telus.com`** with your own APN if you are not on TELUS:
 
 ```bash
-nmcli connection add \
+sudo nmcli connection add \
     type gsm \
     ifname "*" \
     con-name "TANGO-4G" \
