@@ -65,60 +65,49 @@
 
 ---
 
-## 2.2 Shrink and compress the image with PiShrink
+## 2.2 Shrink and compress the image with ArmbianShrink
 
-Safely shrink the image to its minimal size and compress it using xz via PiShrink. This method cleans the filesystem and produces a significantly smaller file.
+Shrink the image to its minimal size and compress it safely using **ArmbianShrink**, a lightweight tool designed for GPT-based systems like Armbian, Radxa, and Orange Pi.
 
 ### Requirements
 
-* Docker installed
-* Internet access to clone the PiShrink repository
-* Sufficient free space (at least 2× the size of the image)
+* macOS or Linux
+* Internet access to download `armbianshrink.sh`
+* Sufficient free space (at least 2× the image size)
 
-1. **Clone the PiShrink repository and build the Docker image:**
+1. **Download and install ArmbianShrink** (if not already installed):
+
+   ```bash
+   curl -L https://raw.githubusercontent.com/dedalodaelus/ArmbianShrink/master/armbianshrink.sh \
+     -o armbianshrink.sh
+   chmod +x armbianshrink.sh
+   sudo mv armbianshrink.sh /usr/local/bin/
+   ```
+
+2. **Run ArmbianShrink** from your working directory (e.g., `~/Downloads`):
 
    ```bash
    cd ~/Downloads
-   git clone https://github.com/drewsif/pishrink.git
-   cd pishrink
-   docker build -t local-pishrink .
+   sudo armbianshrink.sh -Z rpicfg_backup.img
    ```
 
-   The official repository already contains a working `Dockerfile`. The build process takes less than a minute.
+   **Options used:**
 
-2. **Move your `.img` file into the PiShrink folder:**
+   * `-Z`: Shrinks the filesystem **and** compresses to `.xz`
 
-   ```bash
-   mv ~/Downloads/rpicfg_backup.img ~/Downloads/pishrink/
-   ```
+   This script will:
 
-3. **Run PiShrink via Docker to shrink and compress:**
+   * Run a filesystem check (`e2fsck`)
+   * Shrink the root filesystem to its minimal size
+   * Truncate the image file
+   * Compress the result to `rpicfg_backup.img.xz`
 
-   ```bash
-   cd ~/Downloads/pishrink
-   docker run --rm --privileged \
-     -v "$PWD":/mnt \
-     local-pishrink \
-     -vZa /mnt/rpicfg_backup.img /mnt/rpicfg_backup-shrunk.img
-   ```
-
-   * `-v`: verbose output
-   * `-Z`: compress with xz (best compression ratio)
-   * `-a`: use all CPU cores for faster compression
-
-   This step will:
-
-   * Fix any filesystem issues (`e2fsck`)
-   * Resize the partition
-   * Zero free space
-   * Compress the result as `.xz`
-
-4. **Result**
+3. **Result**
 
    The final output will be:
 
    ```bash
-   ~/Downloads/pishrink/rpicfg_backup-shrunk.img.xz
+   ~/Downloads/rpicfg_backup.img.xz
    ```
 
    You can now safely store or distribute this file.
