@@ -37,6 +37,7 @@ sudo tailscale down || true
 sudo tailscale logout || true
 sudo rm -rf /var/lib/tailscale
 sudo tailscaled --cleanup || true
+sudo sync
 
 # 4) Final notice before shutdown
 echo
