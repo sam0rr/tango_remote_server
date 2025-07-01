@@ -118,8 +118,8 @@ trigger_ctrl_l() {
         return
     fi
 
-    log "Window $wid detected — waiting 90 s"
-    sleep 90
+    log "Window $wid detected — waiting 120 s"
+    sleep 120
     if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
         log "Ctrl+L sent to window $wid"
     else
