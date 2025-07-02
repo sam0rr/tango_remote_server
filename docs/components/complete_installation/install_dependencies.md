@@ -43,7 +43,8 @@ ls -l /dev/serial/by-id/      # should list FT232 device
 sudo apt install -y python3 python3-venv \
     xdotool xserver-xorg-video-dummy \
     xserver-xorg-legacy modemmanager \
-    network-manager curl lightdm-settings sqlite3
+    network-manager curl lightdm-settings sqlite3 \
+    python3-spidev python3-libgpiod python3-pip
 ```
 
 > **Enable graphical autologin (LightDM)**
