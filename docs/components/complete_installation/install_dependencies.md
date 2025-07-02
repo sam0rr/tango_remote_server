@@ -44,7 +44,8 @@ sudo apt install -y python3 python3-venv \
     xdotool xserver-xorg-video-dummy \
     xserver-xorg-legacy modemmanager \
     network-manager curl lightdm-settings sqlite3 \
-    python3-spidev python3-libgpiod python3-pip
+    python3-pip python3-dev python3-spidev \
+    python3-smbus python3-gpiod
 ```
 
 > **Enable graphical autologin (LightDM)**
