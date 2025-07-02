@@ -6,7 +6,6 @@
 **Q: How do I verify that rows were removed?**
 
 ```bash
-sudo apt install -y sqlite3    # If not already installed
 sqlite3 ~/.wine/drive_c/ProgramData/Full\ Gauge/Sitrad/data.db "SELECT COUNT(*) FROM tc900log;"
 ```
 
