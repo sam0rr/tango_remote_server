@@ -66,7 +66,7 @@ curl -fsSL https://tailscale.com/install.sh | sh
 ### Python env
 
 ```bash
-python3 -m venv venv
+python3 -m venv venv --system-site-packages
 source venv/bin/activate
 pip install --upgrade pip
 pip install requests python-dotenv
