@@ -140,7 +140,7 @@ send_ctrl_l_and_wait_port() {
         fi
     done
 
-    wait "$WINE_PID"
+    wait "$WINE_PID" || true
     log "Sitrad exited (PID=$WINE_PID)"
 }
 
