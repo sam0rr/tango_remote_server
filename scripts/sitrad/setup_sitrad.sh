@@ -116,7 +116,7 @@ wait_for_sitrad_window() {
     return 1
 }
 
-# ── Send Ctrl+L and wait for FTDI device (single shot) ─────────────────────────
+# ── Send Ctrl+L and wait for FTDI device (single shot) ────────────────────────
 send_ctrl_l_and_wait_port() {
     local wid=$1
 
@@ -142,18 +142,19 @@ send_ctrl_l_and_wait_port() {
     fi
 }
 
-# ── Trigger Ctrl+L ─────────────────────────────────────────────────────────────
+# ── Trigger Ctrl+L ────────────────────────────────────────────────────────────
 trigger_ctrl_l() {
     local wid=$(wait_for_sitrad_window) || return 1
     send_ctrl_l_and_wait_port "$wid"
 }
 
-# ── Wait for Sitrad process to exit ────────────────────────────────────────────
+# ── Wait for Sitrad process to exit ───────────────────────────────────────────
 wait_for_sitrad_exit() {
     wait "$WINE_PID" || true
     log "Sitrad exited (PID=$WINE_PID)"
 }
 
+# ── Main ──────────────────────────────────────────────────────────────────────
 main() {
     log "──────────────────────────────────────────────────────"
     log "Starting setup_sitrad.sh"
