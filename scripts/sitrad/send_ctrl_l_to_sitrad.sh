@@ -52,7 +52,6 @@ send_ctrl_l() {
     local wid="$1"
     log "Sending Ctrl+L to window $wid"
     xdotool key --window "$wid" ctrl+l
-    log "Ctrl+L sent successfully"
 }
 
 # ── Main ────────────────────────────────────────────────────────────────
