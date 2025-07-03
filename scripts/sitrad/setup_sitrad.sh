@@ -9,7 +9,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 # • Cleans old dosdevices links
 # • Adds alias sitrad4.13 to .bashrc
 # • Launches SitradLocal.exe under Wine
-# • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh
+# • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh (with retry waiting the port)
 ###############################################################################
 
 # Ensure we are a normal user (not root)
@@ -28,7 +28,7 @@ export DISPLAY="$DISPLAY_NUM"
 export XAUTHORITY="$HOME/.Xauthority"
 
 # ── Logging utility ───────────────────────────────────────────────────────────
-log() { echo -e "$(date '+%F %T') | $*"; }
+log() { echo -e "$(date '+%F %T') | $*" >&2; }
 
 # ── Error handler ─────────────────────────────────────────────────────────────
 error_handler() { log "ERROR at line $1: $2"; exit 1; }
@@ -103,31 +103,51 @@ launch_sitrad() {
     popd >/dev/null
 }
 
-# ── Wait for Sitrad window and send Ctrl+L ───────────────────────────────────
-trigger_ctrl_l() {
+# ── Wait for Sitrad window ────────────────────────────────────────────────────
+wait_for_sitrad_window() {
     log "Waiting for 'Sitrad Local' window (max 60s)..."
-    local wid=""
+    local wid
     for i in {1..120}; do
         wid=$(xdotool search --name "Sitrad Local" 2>/dev/null | head -n1 || true)
-        [[ -n "$wid" ]] && break
+        [[ -n "$wid" ]] && echo "$wid" && return 0
         sleep 0.5
     done
+    log "Window not found after 60s"
+    return 1
+}
 
-    if [[ -z "$wid" ]]; then
-        log "Window 'Sitrad Local' not detected after 60s"
-        return
-    fi
+# ── Send Ctrl+L and wait for FTDI device with retries ─────────────────────────
+send_ctrl_l_and_wait_port() {
+    local wid=$1 
+    max=5
 
     log "Window $wid detected — waiting 90 s"
     sleep 90
-    if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
-        log "Ctrl+L sent to window $wid"
-    else
-        log "Failed to send Ctrl+L"
-    fi
+
+    for ((i=1; i<=max; i++)); do
+        log "[$i/$max] Sending Ctrl+L"
+        "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid" \
+            && log "Ctrl+L sent" \
+            || log "Failed to send Ctrl+L"
+
+        log "Waiting up to 60s for $FTDI_DEVICE to open"
+        if timeout 60 bash -c "while ! fuser \"$FTDI_DEVICE\" &>/dev/null; do sleep 1; done"; then
+            log "Device $FTDI_DEVICE opened by Sitrad"
+            break
+        else
+            log "Device $FTDI_DEVICE did not open within 60s"
+            (( i < max )) && { log "Retrying: waiting 30 s"; sleep 30; }
+        fi
+    done
 
     wait "$WINE_PID"
     log "Sitrad exited (PID=$WINE_PID)"
+}
+
+# ── Trigger Ctrl+L ─────────────────────────────────────────────────────────────
+trigger_ctrl_l() {
+    local wid=$(wait_for_sitrad_window) || return 1
+    send_ctrl_l_and_wait_port "$wid"
 }
 
 main() {

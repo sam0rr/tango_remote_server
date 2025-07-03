@@ -14,15 +14,10 @@ WINDOW_NAME="${WINDOW_NAME:-Sitrad Local}"
 DISPLAY_VAL="${DISPLAY_VAL:-:1}"
 
 # ── Logging utility ───────────────────────────────────────────────────────────
-log() {
-    echo -e "$(date '+%F %T') | $*"
-}
+log() { echo -e "$(date '+%F %T') | $*" >&2; }
 
 # ── Error handler ─────────────────────────────────────────────────────────────
-error_handler() {
-    log "ERROR at line $1: $2"
-    exit 1
-}
+error_handler() { log "ERROR at line $1: $2"; exit 1; }
 
 # ── Prepare DISPLAY environment ───────────────────────────────────────────────
 prepare_display() {
