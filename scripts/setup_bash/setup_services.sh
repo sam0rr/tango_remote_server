@@ -109,8 +109,8 @@ SITRAD_SCRIPT="$BASEDIR/scripts/sitrad/setup_sitrad.sh"
 cat > "$UNIT_DIR/sitrad.service" <<EOF
 [Unit]
 Description=Run Sitrad 4.13 under Wine (headless)
-After=network.target display.service
 Requires=display.service
+After=network.target display.service
 
 [Service]
 Type=simple
@@ -148,6 +148,8 @@ echo "Creating send_to_tb.timer..."
 cat > "$UNIT_DIR/send_to_tb.timer" <<EOF
 [Unit]
 Description=Run send_to_tb.service every 30 seconds
+Wants=network-online.target
+After=network-online.target sitrad.service
 
 [Timer]
 OnStartupSec=20s
