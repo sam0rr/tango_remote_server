@@ -126,9 +126,12 @@ send_ctrl_l_and_wait_port() {
 
     for ((i=1; i<=max; i++)); do
         log "[$i/$max] Sending Ctrl+L"
-        "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid" \
-            && log "Ctrl+L sent" \
-            || log "Failed to send Ctrl+L"
+        if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
+            log "Ctrl+L sent"
+        else
+            log "Failed to send Ctrl+L"
+            break
+        fi
 
         log "Waiting up to 60s for $FTDI_DEVICE to open"
         if timeout 60 bash -c "while ! fuser \"$FTDI_DEVICE\" &>/dev/null; do sleep 1; done"; then
