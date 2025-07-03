@@ -26,6 +26,7 @@ BASHRC="$HOME/.bashrc"
 DISPLAY_NUM=":1"
 export DISPLAY="$DISPLAY_NUM"
 export XAUTHORITY="$HOME/.Xauthority"
+export WINEDEBUG=err
 
 # ── Logging utility ───────────────────────────────────────────────────────────
 log() { echo -e "$(date '+%F %T') | $*" >&2; }
