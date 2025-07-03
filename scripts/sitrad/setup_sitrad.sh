@@ -9,7 +9,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 # • Cleans old dosdevices links
 # • Adds alias sitrad4.13 to .bashrc
 # • Launches SitradLocal.exe under Wine
-# • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh (retry waiting the port)
+# • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh (waiting the port)
 ###############################################################################
 
 # Ensure we are a normal user (not root)
@@ -116,41 +116,38 @@ wait_for_sitrad_window() {
     return 1
 }
 
-# ── Send Ctrl+L and wait for FTDI device with retries ─────────────────────────
+# ── Send Ctrl+L and wait for FTDI device (single shot) ─────────────────────────
 send_ctrl_l_and_wait_port() {
-    local wid=$1 
-    max=5
+    local wid=$1
 
-    log "Window $wid detected — waiting 90 s"
+    log "Window $wid detected — waiting 90 s before Ctrl+L"
     sleep 90
 
-    for ((i=1; i<=max; i++)); do
-        log "[$i/$max] Sending Ctrl+L"
-        if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
-            log "Ctrl+L sent"
-        else
-            log "Failed to send Ctrl+L"
-            break
-        fi
+    log "Sending Ctrl+L"
+    if ! "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
+        log "Failed to send Ctrl+L — killing Wine to force full restart"
+        wineserver -k
+        return
+    fi
 
-        log "Waiting up to 60s for $FTDI_DEVICE to open"
-        if timeout 60 bash -c "while ! fuser \"$FTDI_DEVICE\" &>/dev/null; do sleep 1; done"; then
-            log "Device $FTDI_DEVICE opened by Sitrad"
-            break
-        else
-            log "Device $FTDI_DEVICE did not open within 60s"
-            (( i < max )) && { log "Retrying: waiting 30 s"; sleep 30; }
-        fi
-    done
-
-    wait "$WINE_PID" || true
-    log "Sitrad exited (PID=$WINE_PID)"
+    log "Waiting up to 60 s for $FTDI_DEVICE to open"
+    if ! timeout 60 bash -c "while ! fuser \"$FTDI_DEVICE\" &>/dev/null; do sleep 1; done"; then
+        log "Port $FTDI_DEVICE did not open — killing Wine to force full restart"
+        wineserver -k
+        return
+    fi
 }
 
 # ── Trigger Ctrl+L ─────────────────────────────────────────────────────────────
 trigger_ctrl_l() {
     local wid=$(wait_for_sitrad_window) || return 1
     send_ctrl_l_and_wait_port "$wid"
+}
+
+# ── Exit if sitrad4.13 crash ─────────────────────────────────────────────────────────────
+wait_for_sitrad_exit() {
+    wait "$WINE_PID" || true
+    log "Sitrad exited (PID=$WINE_PID)"
 }
 
 main() {
@@ -164,6 +161,7 @@ main() {
     add_alias
     launch_sitrad
     trigger_ctrl_l
+    wait_for_sitrad_exit
     log "──────────────────────────────────────────────────────"
     log "setup_sitrad.sh complete"
 }
