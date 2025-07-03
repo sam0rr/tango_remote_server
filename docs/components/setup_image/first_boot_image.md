@@ -5,7 +5,7 @@
 
 ## 4.1 Boot the target device
 
-## Insert the SD card into the Raspberry Pi (or ARM64 board) and power it on.
+## Insert the SD card into the board (ARM64) and power it on.
 
 ## 4.2 Optional: Boot from eMMC (only if your board has eMMC storage)
 
