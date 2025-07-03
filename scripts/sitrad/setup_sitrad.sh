@@ -9,7 +9,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 # • Cleans old dosdevices links
 # • Adds alias sitrad4.13 to .bashrc
 # • Launches SitradLocal.exe under Wine
-# • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh (waiting the port)
+# • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh (waiting the port or restart)
 ###############################################################################
 
 # Ensure we are a normal user (not root)
