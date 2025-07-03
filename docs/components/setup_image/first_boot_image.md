@@ -24,6 +24,7 @@ If your device can use eMMC instead the SD card, follow these steps. Otherwise, 
    * **Storage**
    * **Install**
    * **2 - Boot from eMMC - System on eMMC**
+   * **Yes (erase)**
    * **1 - ext4**
 3. Wait for the installation to finish. The system will automatically shut down when complete.
 4. Remove the SD card from the board.
