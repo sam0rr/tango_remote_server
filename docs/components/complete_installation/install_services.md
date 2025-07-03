@@ -55,7 +55,7 @@ MAX_DELAY_SEC=30
 POST_TIMEOUT=10
 # Enforce a fixed time window (in seconds) between each batch
 BATCH_WINDOW_SEC=2.0
-# Minimum size for batch splitting (disable split with large value like 9999)
+# Minimum size for batch splitting
 MIN_BATCH_SIZE_TO_SPLIT=1
 
 ###############################################################################
