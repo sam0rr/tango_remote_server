@@ -6,14 +6,14 @@
 
 ---
 
-This repository turns a low-cost Linux box (Raspberry Pi 3/4, Debian 12 PC (Unbunto), etc.) into a self-contained
+This repository turns a Linux ARM-64 box (Raspberry Pi 3/4, Debian 12 PC (Unbunto), etc.) into a self-contained
 gateway that :
 
 1. **Runs Sitrad 4.13** under Wine – completely head-less, thanks to a **dummy Xorg server** (no
    Xvfb, no window-manager, no HDMI dongle).
 2. **Harvests telemetry** from the SQLite database Sitrad produces.
 3. **Sends the data** to **ThingsBoard Cloud** through a resilient HTTP client with rate-limiting,
-   auto-retry, and fine-grained batching.
+   auto-retry, and batching.
 4. **Rotates its own logs** as well as `journald`, and restarts automatically via **per-user
    systemd** units.
 
