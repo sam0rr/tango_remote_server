@@ -3,7 +3,7 @@ set -euo pipefail
 
 ###############################################################################
 # install_services.sh — Install and enable:
-#  • journald retention policy (auto-prune old logs)
+#  • journald retention policy (auto-purge old logs)
 #  • Xorg dummy driver configuration
 #  • display.service       (Xorg)
 #  • sitrad.service        (Wine Sitrad under virtual display)
