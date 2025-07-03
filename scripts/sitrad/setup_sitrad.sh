@@ -128,7 +128,7 @@ send_ctrl_l_and_wait_port() {
         log "Ctrl+L sent successfully"
     else
         log "Failed to send Ctrl+L - aborting and killing Wine"
-        wineserver -k
+        wineserver -k || true
         return
     fi
 
@@ -137,7 +137,7 @@ send_ctrl_l_and_wait_port() {
         log "Device $FTDI_DEVICE opened by Sitrad"
     else
         log "Device $FTDI_DEVICE did not open within 60s - aborting and killing Wine"
-        wineserver -k
+        wineserver -k || true
         return
     fi
 }
