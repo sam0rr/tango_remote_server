@@ -33,7 +33,7 @@ log() { echo -e "$(date '+%F %T') | $*" >&2; }
 # ── Error handler ─────────────────────────────────────────────────────────────
 error_handler() { log "ERROR at line $1: $2"; exit 1; }
 
-# ── Check for required tools ─────────────────────────────────────────────────
+# ── Check for required tools ──────────────────────────────────────────────────
 check_dependencies() {
     local missing=()
     for cmd in wine udevadm xdotool ss; do
@@ -55,7 +55,7 @@ start_x_session() {
     log "Xorg session on $DISPLAY_NUM is ready"
 }
 
-# ── Detect FTDI adapter (USB-serial) ─────────────────────────────────────────
+# ── Detect FTDI adapter (USB-serial) ──────────────────────────────────────────
 detect_ftdi() {
     log "Detecting FTDI adapter..."
     for dev in /dev/ttyUSB*; do
@@ -68,7 +68,7 @@ detect_ftdi() {
     log "Using $FTDI_DEVICE as COM1"
 }
 
-# ── Clear previous COM ports in dosdevices ───────────────────────────────────
+# ── Clear previous COM ports in dosdevices ────────────────────────────────────
 clear_com_ports() {
     log "Clearing old COM links in $DOS_DIR"
     mkdir -p "$DOS_DIR"
@@ -92,7 +92,7 @@ add_alias() {
     log "Alias sitrad4.13 installed"
 }
 
-# ── Launch Sitrad via Wine on DISPLAY=:1 ─────────────────────────────────────
+# ── Launch Sitrad via Wine on DISPLAY=:1 ──────────────────────────────────────
 launch_sitrad() {
     log "Launching Sitrad 4.13 under Wine"
     pkill -f "$EXE_PATH" || true
@@ -124,15 +124,19 @@ send_ctrl_l_and_wait_port() {
     sleep 90
 
     log "Sending Ctrl+L"
-    if ! "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
-        log "Failed to send Ctrl+L — killing Wine to force full restart"
+    if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
+        log "Ctrl+L sent successfully"
+    else
+        log "Failed to send Ctrl+L - aborting and killing Wine"
         wineserver -k
         return
     fi
 
     log "Waiting up to 60 s for $FTDI_DEVICE to open"
-    if ! timeout 60 bash -c "while ! fuser \"$FTDI_DEVICE\" &>/dev/null; do sleep 1; done"; then
-        log "Port $FTDI_DEVICE did not open — killing Wine to force full restart"
+    if timeout 60 bash -c "while ! fuser \"$FTDI_DEVICE\" &>/dev/null; do sleep 1; done"; then
+        log "Device $FTDI_DEVICE opened by Sitrad"
+    else
+        log "Device $FTDI_DEVICE did not open within 60s - aborting and killing Wine"
         wineserver -k
         return
     fi
@@ -144,7 +148,7 @@ trigger_ctrl_l() {
     send_ctrl_l_and_wait_port "$wid"
 }
 
-# ── Exit if sitrad4.13 crash ─────────────────────────────────────────────────────────────
+# ── Wait for Sitrad process to exit ────────────────────────────────────────────
 wait_for_sitrad_exit() {
     wait "$WINE_PID" || true
     log "Sitrad exited (PID=$WINE_PID)"
