@@ -110,7 +110,7 @@ cat > "$UNIT_DIR/sitrad.service" <<EOF
 [Unit]
 Description=Run Sitrad 4.13 under Wine (headless)
 Requires=display.service
-After=network.target display.service
+After=display.service
 
 [Service]
 Type=simple
