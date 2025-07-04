@@ -6,6 +6,7 @@ set -euo pipefail
 #  • Stops and disables display.service
 #  • Stops and disables sitrad.service
 #  • Stops and disables send_to_tb.timer + service
+#  • Stops and disables watchdog.service
 #  • Removes service files from ~/.config/systemd/user
 #  • Deletes journald retention drop-in
 #  • Removes Xwrapper.config
@@ -44,7 +45,13 @@ systemctl --user disable send_to_tb.timer 2>/dev/null || true
 systemctl --user stop send_to_tb.service 2>/dev/null || true
 rm -f "$UNIT_DIR/send_to_tb.service" "$UNIT_DIR/send_to_tb.timer"
 
-# 4) Remove journald retention drop-in
+# 4) Stop & disable watchdog.service
+echo "Stopping and disabling watchdog.service..."
+systemctl --user stop watchdog.service 2>/dev/null || true
+systemctl --user disable watchdog.service 2>/dev/null || true
+rm -f "$UNIT_DIR/watchdog.service"
+
+# 5) Remove journald retention drop-in
 if [ -f "$RETENTION_DROPIN" ]; then
   echo "Removing journald retention drop-in: $RETENTION_DROPIN"
   sudo rm -f "$RETENTION_DROPIN"
@@ -52,13 +59,13 @@ if [ -f "$RETENTION_DROPIN" ]; then
   sudo systemctl restart systemd-journald
 fi
 
-# 5) Remove Xwrapper.config
+# 6) Remove Xwrapper.config
 if [ -f "$XWRAPPER_CONF" ]; then
   echo "Removing Xwrapper.config: $XWRAPPER_CONF"
   sudo rm -f "$XWRAPPER_CONF"
 fi
 
-# 6) Delete Xorg dummy configuration (isolated)
+# 7) Delete Xorg dummy configuration (isolated)
 if [ -f "$DUMMY_CONF" ]; then
   echo "Deleting isolated Xorg dummy configuration: $DUMMY_CONF"
   sudo rm -f "$DUMMY_CONF"
@@ -66,19 +73,19 @@ if [ -f "$DUMMY_CONF" ]; then
   sudo rmdir --ignore-fail-on-non-empty "$(dirname "$DUMMY_CONF")" 2>/dev/null || true
 fi
 
-# 7) Delete residual Xorg log files
+# 8) Delete residual Xorg log files
 echo "Deleting residual Xorg log files..."
 rm -f ~/.local/share/xorg/Xorg.1.log ~/.xsession-errors* ~/.Xauthority || true
 
-# 8) Reload systemd user daemon
+# 9) Reload systemd user daemon
 echo "Reloading systemd user daemon..."
 systemctl --user daemon-reload
 
-# 9) Disable linger for user
+# 10) Disable linger for user
 echo "Disabling linger for user $(whoami)..."
 sudo loginctl disable-linger "$(whoami)" || true
 
-# 10) Final summary
+# 11) Final summary
 cat <<EOF
 
 Uninstallation complete.
