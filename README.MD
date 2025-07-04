@@ -9,8 +9,7 @@
 This repository turns a Linux ARM64 box (Radxa zero 3W, etc.) into a self-contained
 gateway that :
 
-1. **Runs Sitrad 4.13** under Wine – completely head-less, thanks to a **dummy Xorg server** (no
-   Xvfb, no window-manager, no HDMI dongle).
+1. **Runs Sitrad 4.13** under Wine – completely head-less, thanks to a **dummy Xorg server**.
 2. **Harvests telemetry** from the SQLite database Sitrad produces.
 3. **Sends the data** to **ThingsBoard Cloud** through a resilient HTTP client with rate-limiting,
    auto-retry, and batching.
