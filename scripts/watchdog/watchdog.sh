@@ -16,9 +16,7 @@ TELEMETRY_START_PATTERN="[TELEMETRY_START]"
 NO_DATA_PATTERN="[NO_DATA]"
 TELEMETRY_DONE_PATTERN="[TELEMETRY_DONE]"
 MAX_EMPTY_CYCLES=20
-
-# ── Global state ──────────────────────────────────────────────────────────────
-empty_count=0
+RESET_FLAG_FILE="/tmp/watchdog_reset"
 
 # ── Logging utility ───────────────────────────────────────────────────────────
 log() { echo -e "$(date '+%F %T') | $*" >&2; }
@@ -30,8 +28,8 @@ error_handler() { log "ERROR at line $1: $2"; exit 1; }
 trigger_recovery() {
     log "Triggering Wine recovery via wineserver -k"
     wineserver -k || true
-    empty_count=0
-    log "Resetting empty telemetry cycle counter due to recovery"
+    log "Flagging telemetry counter reset"
+    touch "$RESET_FLAG_FILE"
 }
 
 # ── Monitor dmesg/journal for USB disconnects ─────────────────────────────────
@@ -39,7 +37,7 @@ monitor_usb_disconnects() {
     journalctl -kf |
     grep --line-buffered "$FTDI_MATCH" |
     while IFS= read -r line; do
-        log "USB disconnect detected: $line"
+        log "USB disconnect detected: $line — triggering recovery"
         trigger_recovery
     done
 }
@@ -48,9 +46,17 @@ monitor_usb_disconnects() {
 monitor_empty_telemetry_cycles() {
     local in_cycle=false
     local is_empty=false
+    local empty_count=0
 
     journalctl --user -fu "$TELEMETRY_UNIT" --output=cat --lines=0 |
     while IFS= read -r line; do
+
+        if [[ -f "$RESET_FLAG_FILE" ]]; then
+            empty_count=0
+            rm -f "$RESET_FLAG_FILE"
+            log "Reset flag detected — telemetry counter reset"
+        fi
+
         case "$line" in
             *"$TELEMETRY_START_PATTERN"*)
                 in_cycle=true
@@ -61,7 +67,7 @@ monitor_empty_telemetry_cycles() {
                 ;;
             *"$TELEMETRY_DONE_PATTERN"*)
                 if $in_cycle; then
-                    handle_cycle_result "$is_empty"
+                    handle_cycle_result "$is_empty" empty_count
                     in_cycle=false
                 fi
                 ;;
@@ -72,6 +78,7 @@ monitor_empty_telemetry_cycles() {
 # ── Handle end of telemetry cycle ─────────────────────────────────────────────
 handle_cycle_result() {
     local is_empty=$1
+    local -n empty_count=$2
 
     if $is_empty; then
         empty_count=$((empty_count + 1))
