@@ -132,6 +132,8 @@ SEND_SCRIPT="$BASEDIR/send_to_tb/main.py"
 cat > "$UNIT_DIR/send_to_tb.service" <<EOF
 [Unit]
 Description=Send telemetry to ThingsBoard
+Wants=sitrad.service
+After=sitrad.service
 
 [Service]
 Type=oneshot
@@ -149,7 +151,7 @@ cat > "$UNIT_DIR/send_to_tb.timer" <<EOF
 [Unit]
 Description=Run send_to_tb.service every 30 seconds
 Wants=network-online.target
-After=network-online.target sitrad.service
+After=network-online.target
 
 [Timer]
 OnStartupSec=20s
