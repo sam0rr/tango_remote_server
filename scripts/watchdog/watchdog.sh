@@ -5,7 +5,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 ###############################################################################
 # watchdog.sh — Monitors USB and telemetry logs to auto-recover Sitrad
 # • Detects FTDI disconnections (kernel USB errors)
-# • Detects consecutive empty telemetry cycles via [TELEMETRY_START]/[NO_DATA]
+# • Detects consecutive empty telemetry cycles via [TELEMETRY_START]/[NO_DATA]/[TELEMETRY_DONE]
 # • Triggers Wine reset via wineserver -k
 ###############################################################################
 
@@ -14,6 +14,7 @@ FTDI_MATCH="ftdi.*disconnected"
 TELEMETRY_UNIT="send_to_tb.service"
 TELEMETRY_START_PATTERN="[TELEMETRY_START]"
 NO_DATA_PATTERN="[NO_DATA]"
+TELEMETRY_DONE_PATTERN="[TELEMETRY_DONE]"
 MAX_EMPTY_CYCLES=20
 
 # ── Logging utility ───────────────────────────────────────────────────────────
@@ -38,7 +39,7 @@ monitor_usb_disconnects() {
     done
 }
 
-# ── Monitor telemetry logs for consecutive [NO_DATA] cycles ─────────────────
+# ── Monitor telemetry logs with TELEMETRY_DONE trigger ────────────────────────
 monitor_empty_telemetry_cycles() {
     local empty_count=0
     local in_cycle=false
@@ -48,14 +49,17 @@ monitor_empty_telemetry_cycles() {
     while IFS= read -r line; do
         case "$line" in
             *"$TELEMETRY_START_PATTERN"*)
-                if $in_cycle; then
-                    handle_cycle_result "$has_no_data" empty_count
-                fi
                 in_cycle=true
                 has_no_data=false
                 ;;
             *"$NO_DATA_PATTERN"*)
                 $in_cycle && has_no_data=true
+                ;;
+            *"$TELEMETRY_DONE_PATTERN"*)
+                if $in_cycle; then
+                    handle_cycle_result "$has_no_data" empty_count
+                    in_cycle=false
+                fi
                 ;;
         esac
     done
@@ -64,7 +68,7 @@ monitor_empty_telemetry_cycles() {
 # ── Handle end of telemetry cycle ─────────────────────────────────────────────
 handle_cycle_result() {
     local was_empty=$1
-    local -n count_ref=$2 
+    local -n count_ref=$2
 
     if $was_empty; then
         count_ref=$((count_ref + 1))
@@ -73,7 +77,7 @@ handle_cycle_result() {
         count_ref=0
         log "Telemetry cycle had data — empty counter reset"
     fi
-    
+
     if [[ $count_ref -ge $MAX_EMPTY_CYCLES ]]; then
         log "$MAX_EMPTY_CYCLES consecutive empty telemetry cycles — triggering recovery"
         trigger_recovery

@@ -98,6 +98,8 @@ class SendToLauncher:
           2) Chunk them by max_batch_size and call _send_in_chunks().
           3) After all telemetry rows are sent & deleted, clear the alarm table.
         """
+        log.info("[TELEMETRY_START] Starting telemetry cycle")
+
         payloads = self._fetch_payloads()
         self._send_in_chunks(payloads)
 
@@ -109,3 +111,6 @@ class SendToLauncher:
 
         self.client.close()
         log.info("Http client closed.")
+
+        log.info("[TELEMETRY_DONE] Telemetry cycle completed")
+

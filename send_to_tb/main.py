@@ -68,7 +68,6 @@ def main():
         purge_old_logs(logs_path, max_age_days=cfg.purge_log_days)
 
         launcher = build_launcher(cfg)
-        log.info("[TELEMETRY_START] Starting telemetry cycle")
         launcher.start()
 
     except Exception:
