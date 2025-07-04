@@ -54,6 +54,7 @@ class SendToLauncher:
         total = len(payloads)
         log.info(f"Processing {total} payload(s) in batches of {self.max_batch_size}.")
         if total == 0:
+            log.error("[NO_DATA] No payloads to send — skipping telemetry push.")
             return
 
         for batch_no, start in enumerate(range(0, total, self.max_batch_size), start=1):
