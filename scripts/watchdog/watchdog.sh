@@ -47,21 +47,21 @@ monitor_usb_disconnects() {
 # ── Monitor telemetry logs with TELEMETRY_DONE trigger ────────────────────────
 monitor_empty_telemetry_cycles() {
     local in_cycle=false
-    local has_no_data=false
+    local is_empty=false
 
     journalctl --user -fu "$TELEMETRY_UNIT" --output=cat --lines=0 |
     while IFS= read -r line; do
         case "$line" in
             *"$TELEMETRY_START_PATTERN"*)
                 in_cycle=true
-                has_no_data=false
+                is_empty=false
                 ;;
             *"$NO_DATA_PATTERN"*)
-                $in_cycle && has_no_data=true
+                $in_cycle && is_empty=true
                 ;;
             *"$TELEMETRY_DONE_PATTERN"*)
                 if $in_cycle; then
-                    handle_cycle_result "$has_no_data"
+                    handle_cycle_result "$is_empty"
                     in_cycle=false
                 fi
                 ;;
@@ -71,9 +71,9 @@ monitor_empty_telemetry_cycles() {
 
 # ── Handle end of telemetry cycle ─────────────────────────────────────────────
 handle_cycle_result() {
-    local was_empty=$1
+    local is_empty=$1
 
-    if $was_empty; then
+    if $is_empty; then
         empty_count=$((empty_count + 1))
         log "Empty telemetry cycle ($empty_count/$MAX_EMPTY_CYCLES)"
     else
