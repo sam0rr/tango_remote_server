@@ -40,6 +40,8 @@ chmod +x scripts/sitrad/setup_sitrad.sh
 chmod +x scripts/sitrad/send_ctrl_l_to_sitrad.sh
 chmod +x scripts/setup_bash/setup_services.sh
 chmod +x scripts/setup_bash/kill_services.sh
+chmod +x scripts/setup_bash/prepare_image.sh
+chmod +x scripts/watchdog/watchdog.sh
 ```
 
 ---

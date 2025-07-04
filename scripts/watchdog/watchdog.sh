@@ -5,7 +5,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 ###############################################################################
 # watchdog.sh — Monitors USB and telemetry logs to auto-recover Sitrad
 # • Detects FTDI disconnections (kernel USB errors)
-# • Detects 4 consecutive empty telemetry cycles via [TELEMETRY_START]/[NO_DATA]
+# • Detects consecutive empty telemetry cycles via [TELEMETRY_START]/[NO_DATA]
 # • Triggers Wine reset via wineserver -k
 ###############################################################################
 
@@ -14,7 +14,7 @@ FTDI_MATCH="ftdi.*disconnected"
 TELEMETRY_UNIT="send_to_tb.service"
 TELEMETRY_START_PATTERN="[TELEMETRY_START]"
 NO_DATA_PATTERN="[NO_DATA]"
-MAX_EMPTY_CYCLES=4
+MAX_EMPTY_CYCLES=20
 
 # ── Logging utility ───────────────────────────────────────────────────────────
 log() { echo -e "$(date '+%F %T') | $*" >&2; }
@@ -38,7 +38,7 @@ monitor_usb_disconnects() {
     done
 }
 
-# ── Monitor telemetry logs for 4 consecutive [NO_DATA] cycles ─────────────────
+# ── Monitor telemetry logs for consecutive [NO_DATA] cycles ─────────────────
 monitor_empty_telemetry_cycles() {
     local empty_count=0
     local in_cycle=false

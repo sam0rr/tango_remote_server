@@ -49,9 +49,12 @@ TANGO_REMOTE_SERVER/
 │   │   ├── prepare_image.sh              ← Prepares clonable SD-card image
 │   │   └── setup_services.sh             ← Installs per-user systemd units
 │   │
-│   └── sitrad/
-│       ├── send_ctrl_l_to_sitrad.sh      ← Send Ctrl+L after Sitrad loads
-│       └── setup_sitrad.sh               ← Launches Wine + Sitrad under dummy X
+│   ├── sitrad/
+│   │   ├── send_ctrl_l_to_sitrad.sh      ← Send Ctrl+L after Sitrad loads
+│   │   └── setup_sitrad.sh               ← Launches Wine + Sitrad under dummy X
+│   │ 
+│   └── watchdog/
+│       └── watchdog.sh                   ← Watchdog for Sitrad health
 │
 ├── send_to_tb/
 │   ├── main.py                           ← Entry-point for telemetry exporter
