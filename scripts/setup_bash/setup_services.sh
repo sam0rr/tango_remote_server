@@ -9,6 +9,7 @@ set -euo pipefail
 #  • sitrad.service        (Wine Sitrad under virtual display)
 #  • send_to_tb.service    (telemetry push to ThingsBoard)
 #  • send_to_tb.timer      (runs every 30 seconds)
+#  • watchdog.service      (auto-recovery watchdog)
 #  • user-level lingering for autostart at boot
 ###############################################################################
 
@@ -163,7 +164,26 @@ Persistent=true
 WantedBy=timers.target
 EOF
 
-# 8) Reload systemd and enable everything
+# 8) Create watchdog.service (check usb + telemetry)
+echo "Creating watchdog.service..."
+WATCHDOG_SCRIPT="$BASEDIR/scripts/watchdog/watchdog.sh"
+cat > "$UNIT_DIR/watchdog.service" <<EOF
+[Unit]
+Description=Watchdog — Monitors USB and telemetry logs to auto-recover Sitrad
+Wants=sitrad.service
+After=sitrad.service
+
+[Service]
+Type=simple
+ExecStart=$WATCHDOG_SCRIPT
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+EOF
+
+# 9) Reload systemd and enable everything
 echo "Reloading systemd user units..."
 systemctl --user daemon-reload
 
@@ -171,12 +191,13 @@ echo "Enabling and starting services..."
 systemctl --user enable --now display.service
 systemctl --user enable --now sitrad.service
 systemctl --user enable --now send_to_tb.timer
+systemctl --user enable --now watchdog.service
 
-# 9) Enable linger so user services auto-start at boot
+# 10) Enable linger so user services auto-start at boot
 echo "Enabling linger for user $(whoami)..."
 sudo loginctl enable-linger "$(whoami)"
 
-# 10) Final summary
+# 11) Final summary
 cat <<EOF
 
 Services installed and running:
@@ -184,10 +205,14 @@ Services installed and running:
    - display.service      (Xorg dummy only)
    - sitrad.service       (Wine Sitrad using DISPLAY=:1)
    - send_to_tb.timer     (pushes data every 30 seconds)
+   - watchdog.service     (monitors USB + telemetry, auto-restarts Sitrad)
 
 To monitor logs:
    journalctl --user -u display.service -f        # Follow Xorg Display logs
    journalctl --user -u sitrad.service -f         # Follow Sitrad logs
    journalctl --user -u send_to_tb.service -n 50  # Last 50 lines of telemetry-sender logs
+   journalctl --user -u watchdog.service -f       # Follow Watchdog logs
    journalctl --disk-usage
 EOF
+
+
