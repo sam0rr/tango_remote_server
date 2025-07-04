@@ -117,7 +117,7 @@ After=display.service
 Type=simple
 Environment=DISPLAY=:1
 Environment=XAUTHORITY=%h/.Xauthority
-Environment=WINEDEBUG=-all
+Environment=WINEDEBUG=-all+warn+err
 WorkingDirectory=$BASEDIR/scripts/sitrad
 ExecStart=$SITRAD_SCRIPT
 Restart=always
