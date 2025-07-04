@@ -109,6 +109,8 @@ handle_cycle_result() {
 # ── Main ──────────────────────────────────────────────────────────────────────
 main() {
     log "Watchdog started — monitoring USB and telemetry logs"
+    rm -f "$RESET_FLAG_FILE"
+    echo 0 > "$LAST_RESET_FILE"
     monitor_usb_disconnects &
     monitor_empty_telemetry_cycles &
     wait -n
