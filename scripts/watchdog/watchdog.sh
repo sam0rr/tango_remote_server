@@ -71,8 +71,9 @@ handle_cycle_result() {
         log "Empty telemetry cycle ($count_ref/$MAX_EMPTY_CYCLES)"
     else
         count_ref=0
+        log "Telemetry cycle had data — empty counter reset"
     fi
-
+    
     if [[ $count_ref -ge $MAX_EMPTY_CYCLES ]]; then
         log "$MAX_EMPTY_CYCLES consecutive empty telemetry cycles — triggering recovery"
         trigger_recovery
