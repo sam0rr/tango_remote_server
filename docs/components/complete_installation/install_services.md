@@ -124,6 +124,7 @@ This sets up and enables:
 | `sitrad.service`        | Launches Wine + Sitrad (requires `display.service`)    |
 | `send_to_tb.timer`      | Triggers `send_to_tb.service` every 30 seconds         |
 | `send_to_tb.service`    | Runs `main.py` once with `.env` config                 |
+| `watchdog.service`      | Monitors USB & telemetry logs to auto-recover Sitrad   |
 | `journald` drop-in      | Limits logs to 200 MiB / 7 days                        |
 
 ### Uninstall Services

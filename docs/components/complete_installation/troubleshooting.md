@@ -22,10 +22,11 @@ systemctl --user list-timers
 **Q: How do I view the send logs?**
 
 ```bash
-journalctl --user -u display.service -f        # Follow Xorg Display logs
-journalctl --user -u sitrad.service -f         # Follow Sitrad logs
-journalctl --user -u send_to_tb.service -n 50  # Show last 50 lines of telemetry sender
-journalctl --disk-usage                        # Check disk usage of logs
+   journalctl --user -u display.service -f        # Follow Xorg Display logs
+   journalctl --user -u sitrad.service -f         # Follow Sitrad logs
+   journalctl --user -u send_to_tb.service -n 50  # Last 50 lines of telemetry-sender logs
+   journalctl --user -u watchdog.service -f       # Follow Watchdog logs
+   journalctl --disk-usage
 ```
 
 ---
