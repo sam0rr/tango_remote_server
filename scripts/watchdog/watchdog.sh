@@ -16,7 +16,9 @@ TELEMETRY_START_PATTERN="[TELEMETRY_START]"
 NO_DATA_PATTERN="[NO_DATA]"
 TELEMETRY_DONE_PATTERN="[TELEMETRY_DONE]"
 MAX_EMPTY_CYCLES=20
+MIN_RESET_INTERVAL=10
 RESET_FLAG_FILE="/tmp/watchdog_reset"
+LAST_RESET_FILE="/tmp/watchdog_last_reset"
 
 # ── Logging utility ───────────────────────────────────────────────────────────
 log() { echo -e "$(date '+%F %T') | $*" >&2; }
@@ -24,12 +26,22 @@ log() { echo -e "$(date '+%F %T') | $*" >&2; }
 # ── Error handler ─────────────────────────────────────────────────────────────
 error_handler() { log "ERROR at line $1: $2"; exit 1; }
 
-# ── Trigger Wine recovery ─────────────────────────────────────────────────────
+# ── Trigger Wine recovery with cooldown ───────────────────────────────────────
 trigger_recovery() {
+    local now last
+    now=$(date +%s)
+    last=$(cat "$LAST_RESET_FILE" 2>/dev/null || echo 0)
+
+    if (( now - last < MIN_RESET_INTERVAL )); then
+        log "Skipping recovery — last reset was $((now - last))s ago (min = ${MIN_RESET_INTERVAL}s)"
+        return
+    fi
+
     log "Triggering Wine recovery via wineserver -k"
     wineserver -k || true
     log "Flagging telemetry counter reset"
     touch "$RESET_FLAG_FILE"
+    echo "$now" > "$LAST_RESET_FILE"
 }
 
 # ── Monitor dmesg/journal for USB disconnects ─────────────────────────────────
