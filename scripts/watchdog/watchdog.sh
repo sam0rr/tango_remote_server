@@ -17,6 +17,9 @@ NO_DATA_PATTERN="[NO_DATA]"
 TELEMETRY_DONE_PATTERN="[TELEMETRY_DONE]"
 MAX_EMPTY_CYCLES=20
 
+# ── Global state ──────────────────────────────────────────────────────────────
+empty_count=0
+
 # ── Logging utility ───────────────────────────────────────────────────────────
 log() { echo -e "$(date '+%F %T') | $*" >&2; }
 
@@ -27,6 +30,8 @@ error_handler() { log "ERROR at line $1: $2"; exit 1; }
 trigger_recovery() {
     log "Triggering Wine recovery via wineserver -k"
     wineserver -k || true
+    empty_count=0
+    log "Resetting empty telemetry cycle counter due to recovery"
 }
 
 # ── Monitor dmesg/journal for USB disconnects ─────────────────────────────────
@@ -41,7 +46,6 @@ monitor_usb_disconnects() {
 
 # ── Monitor telemetry logs with TELEMETRY_DONE trigger ────────────────────────
 monitor_empty_telemetry_cycles() {
-    local empty_count=0
     local in_cycle=false
     local has_no_data=false
 
@@ -57,7 +61,7 @@ monitor_empty_telemetry_cycles() {
                 ;;
             *"$TELEMETRY_DONE_PATTERN"*)
                 if $in_cycle; then
-                    handle_cycle_result "$has_no_data" empty_count
+                    handle_cycle_result "$has_no_data"
                     in_cycle=false
                 fi
                 ;;
@@ -68,20 +72,18 @@ monitor_empty_telemetry_cycles() {
 # ── Handle end of telemetry cycle ─────────────────────────────────────────────
 handle_cycle_result() {
     local was_empty=$1
-    local -n count_ref=$2
 
     if $was_empty; then
-        count_ref=$((count_ref + 1))
-        log "Empty telemetry cycle ($count_ref/$MAX_EMPTY_CYCLES)"
+        empty_count=$((empty_count + 1))
+        log "Empty telemetry cycle ($empty_count/$MAX_EMPTY_CYCLES)"
     else
-        count_ref=0
+        empty_count=0
         log "Telemetry cycle had data — empty counter reset"
     fi
 
-    if [[ $count_ref -ge $MAX_EMPTY_CYCLES ]]; then
+    if [[ $empty_count -ge $MAX_EMPTY_CYCLES ]]; then
         log "$MAX_EMPTY_CYCLES consecutive empty telemetry cycles — triggering recovery"
         trigger_recovery
-        count_ref=0
     fi
 }
 
