@@ -6,7 +6,7 @@
 
 ---
 
-This repository turns a Linux ARM-64 box (Raspberry Pi 3/4, Debian 12 PC (Unbunto), etc.) into a self-contained
+This repository turns a Linux ARM64 box (Radxa zero 3W, etc.) into a self-contained
 gateway that :
 
 1. **Runs Sitrad 4.13** under Wine – completely head-less, thanks to a **dummy Xorg server** (no
