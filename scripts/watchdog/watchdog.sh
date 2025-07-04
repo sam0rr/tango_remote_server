@@ -78,17 +78,17 @@ monitor_empty_telemetry_cycles() {
 # ── Handle end of telemetry cycle ─────────────────────────────────────────────
 handle_cycle_result() {
     local is_empty=$1
-    local -n empty_count=$2
+    local -n ref_empty_count=$2
 
     if $is_empty; then
-        empty_count=$((empty_count + 1))
-        log "Empty telemetry cycle ($empty_count/$MAX_EMPTY_CYCLES)"
+        ref_empty_count=$((ref_empty_count + 1))
+        log "Empty telemetry cycle ($ref_empty_count/$MAX_EMPTY_CYCLES)"
     else
-        empty_count=0
+        ref_empty_count=0
         log "Telemetry cycle had data — empty counter reset"
     fi
 
-    if [[ $empty_count -ge $MAX_EMPTY_CYCLES ]]; then
+    if [[ $ref_empty_count -ge $MAX_EMPTY_CYCLES ]]; then
         log "$MAX_EMPTY_CYCLES consecutive empty telemetry cycles — triggering recovery"
         trigger_recovery
     fi
