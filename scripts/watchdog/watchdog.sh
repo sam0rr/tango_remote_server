@@ -6,7 +6,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 # watchdog.sh — Monitors USB and telemetry logs to auto-recover Sitrad
 # • Detects FTDI disconnections (kernel USB errors)
 # • Detects consecutive empty telemetry cycles via [TELEMETRY_START]/[NO_DATA]/[TELEMETRY_DONE]
-# • Triggers Wine reset via wineserver -k
+# • Triggers Wine reset via wineserver -k (restart Sitrad)
 ###############################################################################
 
 # ── Configuration ─────────────────────────────────────────────────────────────
