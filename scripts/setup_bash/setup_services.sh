@@ -17,7 +17,7 @@ BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 UNIT_DIR="$HOME/.config/systemd/user"
 DUMMY_CONF_DIR="/etc/X11/xorg.dummy.d"
 
-# 0) Create journald retention drop-in so logs auto-prune
+# 0) Create journald retention drop-in so logs auto-purge
 echo "Configuring journal retention..."
 sudo mkdir -p /etc/systemd/journald.conf.d
 sudo tee /etc/systemd/journald.conf.d/00-retention.conf >/dev/null <<EOF
