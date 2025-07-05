@@ -6,8 +6,7 @@
 
 ---
 
-This repository turns a Linux ARM64 box (Radxa zero 3W, etc.) into a self-contained
-gateway that :
+This repository turns a Linux ARM64 box (Radxa zero 3W, etc.) into a self-contained server that :
 
 1. **Runs Sitrad 4.13** under Wine – completely head-less, thanks to a **dummy Xorg server**.
 2. **Harvests telemetry** from the SQLite database Sitrad produces.
