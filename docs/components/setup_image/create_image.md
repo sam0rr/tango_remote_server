@@ -65,15 +65,64 @@
 
 ---
 
-## 2.2 Compress the image
+## 2.2 Shrink and compress the image with PiShrink
 
-1. Still in `~/Downloads`, compress with maximum gzip compression:
+Safely shrink the image to its minimal size and compress it using xz via PiShrink. This method cleans the filesystem and produces a significantly smaller file.
+
+### Requirements
+
+* Docker installed
+* Internet access to clone the PiShrink repository
+* Sufficient free space (at least 2× the size of the image)
+
+1. **Clone the PiShrink repository and build the Docker image:**
 
    ```bash
-   gzip -9 rpicfg_backup.img
+   cd ~/Downloads
+   git clone https://github.com/drewsif/pishrink.git
+   cd pishrink
+   docker build -t local-pishrink .
    ```
 
-2. Wait for compression to finish. The result will be `rpicfg_backup.img.gz`.
+   The official repository already contains a working `Dockerfile`. The build process takes less than a minute.
+
+2. **Move your `.img` file into the PiShrink folder:**
+
+   ```bash
+   mv ~/Downloads/rpicfg_backup.img ~/Downloads/pishrink/
+   ```
+
+3. **Run PiShrink via Docker to shrink and compress:**
+
+   ```bash
+   cd ~/Downloads/pishrink
+   docker run --rm --privileged \
+     -v "$PWD":/mnt \
+     local-pishrink \
+     -avZd /mnt/rpicfg_backup.img /mnt/rpicfg_backup-shrunk.img
+   ```
+
+   * `-a`: enables advanced features and optimizations
+   * `-v`: verbose output
+   * `-Z`: compress with xz (best compression ratio)
+   * `-d`: maximum verbosity with debugging information
+
+   This step will:
+
+   * Fix any filesystem issues (`e2fsck`)
+   * Resize the partition
+   * Zero free space
+   * Compress the result as `.xz`
+
+4. **Result**
+
+   The final output will be:
+
+   ```bash
+   ~/Downloads/pishrink/rpicfg_backup-shrunk.img.xz
+   ```
+
+   You can now safely store or distribute this file.
 
 ---
 
