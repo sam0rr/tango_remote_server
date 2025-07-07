@@ -67,7 +67,7 @@
 
 ## 2.2 Shrink and compress the image with PiShrink
 
-Safely shrink the image to its minimal size and compress it using xz via PiShrink. This method cleans the filesystem and produces a significantly smaller file.
+Safely shrink the image to its minimal size and compress it using xz via PiShrink. This method produces a significantly smaller file (only of what is actually used).
 
 ### Requirements
 
