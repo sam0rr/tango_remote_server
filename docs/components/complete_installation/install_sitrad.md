@@ -29,18 +29,18 @@ Some recent Box64 builds cause issues with COM ports or Wine execution. We stron
 ```bash
 sudo dpkg -i ~/tango_remote_server/assets/box64_working_for_sitrad_20250701.deb
 sudo apt-mark hold box64-generic-arm
-```
-
-This prevents automatic upgrades that might break compatibility. To allow updates again in the future:
-
-```bash
-sudo apt-mark unhold box64-generic-arm
 apt policy box64-generic-arm
 ```
 
 You should see:
 ```
 Installed: 0.3.7+20250701T062936.54ea485-1
+```
+
+This prevents automatic upgrades that might break compatibility. To allow updates again in the future:
+
+```bash
+sudo apt-mark unhold box64-generic-arm
 ```
 
 ---
