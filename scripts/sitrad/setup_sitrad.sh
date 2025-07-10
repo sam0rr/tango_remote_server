@@ -7,7 +7,7 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 # • Waits for Xorg (dummy) session started via display.service
 # • Detects FTDI adapter and maps to Wine COM1 via registry (reg)
 # • Cleans old dosdevices links
-# • Adds alias sitrad4.13 to .bashrc
+# • Adds alias sitrad4.13 to .bashrc (FEX usage)
 # • Launches SitradLocal.exe under Wine (Hangover and FEX emulator)
 # • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh (waiting the port or restart)
 ###############################################################################
