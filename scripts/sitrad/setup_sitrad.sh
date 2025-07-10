@@ -3,12 +3,12 @@ set -Eeuo pipefail
 trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 
 ###############################################################################
-# setup_sitrad.sh — Smart, refactored launcher for Sitrad 4.13 on Raspberry Pi
+# setup_sitrad.sh — Smart, refactored launcher for Sitrad 4.13 on ARM64
 # • Waits for Xorg (dummy) session started via display.service
 # • Detects FTDI adapter and maps to Wine COM1 via registry (reg)
 # • Cleans old dosdevices links
 # • Adds alias sitrad4.13 to .bashrc
-# • Launches SitradLocal.exe under Wine
+# • Launches SitradLocal.exe under Wine (Hangover)
 # • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh (waiting the port or restart)
 ###############################################################################
 
