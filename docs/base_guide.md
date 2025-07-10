@@ -19,7 +19,7 @@ cd tango_remote_server
 | Step                            | Document                                                                                   |
 | ------------------------------- | -------------------------------------------------------------------------------------------|
 | 1. Install OS dependencies      | [install\_dependencies.md](/docs/components/complete_installation/install_dependencies.md) |
-| 2. Install Wine 32‑bit & Sitrad | [install\_sitrad.md](/docs/components/complete_installation/install_sitrad.md)             |
+| 2. Install Wine & Sitrad        | [install\_sitrad.md](/docs/components/complete_installation/install_sitrad.md)             |
 | 3. Deploy systemd services      | [install\_services.md](/docs/components/complete_installation/install_services.md)         |
 | 4. Troubleshooting & FAQ        | [troubleshooting.md](/docs/components/complete_installation/troubleshooting.md)            |
 
