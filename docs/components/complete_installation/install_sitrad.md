@@ -18,7 +18,7 @@ pi-apps
 Once open:
 1. Select Tools
 2. Select Emulation
-3. Select Wine
+3. Select Hangover
 4. Select install
 5. Wait for installation
 
