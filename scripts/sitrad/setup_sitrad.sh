@@ -105,16 +105,23 @@ launch_sitrad() {
 # ── Wait for Sitrad window ────────────────────────────────────────────────────
 wait_for_sitrad_window() {
     local timeout=60
-    
+
     log "Waiting for 'Sitrad Local' window (max $timeout s)..."
+    local start_time=$(date +%s)
     local wid
-    for i in {1..120}; do
+
+    while true; do
         wid=$(xdotool search --name "Sitrad Local" 2>/dev/null | head -n1 || true)
         [[ -n "$wid" ]] && echo "$wid" && return 0
+
         sleep 0.5
+
+        local now=$(date +%s)
+        if (( now - start_time >= timeout )); then
+            log "Window not found after $timeout s"
+            return 1
+        fi
     done
-    log "Window not found after $timeout s"
-    return 1
 }
 
 # ── Send Ctrl+L and wait for FTDI device (single shot) ────────────────────────
