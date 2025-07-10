@@ -104,21 +104,24 @@ launch_sitrad() {
 
 # ── Wait for Sitrad window ────────────────────────────────────────────────────
 wait_for_sitrad_window() {
-    log "Waiting for 'Sitrad Local' window (max 60s)..."
+    local timeout=60
+    
+    log "Waiting for 'Sitrad Local' window (max $timeout s)..."
     local wid
     for i in {1..120}; do
         wid=$(xdotool search --name "Sitrad Local" 2>/dev/null | head -n1 || true)
         [[ -n "$wid" ]] && echo "$wid" && return 0
         sleep 0.5
     done
-    log "Window not found after 60s"
+    log "Window not found after $timeout s"
     return 1
 }
 
 # ── Send Ctrl+L and wait for FTDI device (single shot) ────────────────────────
 send_ctrl_l_and_wait_port() {
     local wid=$1
-    local sleep=60
+    local sleep=90
+    local timeout=60
 
     log "Window $wid detected — waiting $sleep s before Ctrl+L"
     sleep $sleep
@@ -132,11 +135,11 @@ send_ctrl_l_and_wait_port() {
         return
     fi
 
-    log "Waiting up to $sleep s for $FTDI_DEVICE to open"
-    if timeout $sleep bash -c "while ! fuser \"$FTDI_DEVICE\" &>/dev/null; do sleep 1; done"; then
+    log "Waiting up to $timeout s for $FTDI_DEVICE to open"
+    if timeout $timeout bash -c "while ! fuser \"$FTDI_DEVICE\" &>/dev/null; do sleep 1; done"; then
         log "Device $FTDI_DEVICE opened by Sitrad"
     else
-        log "Device $FTDI_DEVICE did not open within $sleep s - aborting and killing Wine"
+        log "Device $FTDI_DEVICE did not open within $timeout s - aborting and killing Wine"
         wineserver -k || true
         return
     fi
