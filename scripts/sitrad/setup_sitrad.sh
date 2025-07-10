@@ -20,6 +20,7 @@ BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ── Wine paths ────────────────────────────────────────────────────────────────
 EXE_DIR="$HOME/.wine/drive_c/Program Files (x86)/Full Gauge/Sitrad"
 EXE_NAME="SitradLocal.exe"
+EMULATOR_PREFIX="HODLL=libwow64fex.dll wine"
 EXE_PATH="$EXE_DIR/$EXE_NAME"
 DOS_DIR="$HOME/.wine/dosdevices"
 BASHRC="$HOME/.bashrc"
@@ -84,7 +85,7 @@ map_com1() {
 # ── Add shell alias to launch Sitrad manually ─────────────────────────────────
 add_alias() {
     unalias sitrad4.13 2>/dev/null || true
-    local alias_cmd="alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && wine ./$EXE_NAME && popd >/dev/null'"
+    local alias_cmd="alias sitrad4.13='pushd \"$EXE_DIR\" >/dev/null && $EMULATOR_PREFIX ./$EXE_NAME && popd >/dev/null'"
     grep -Fq 'alias sitrad4.13=' "$BASHRC" && sed -i '/alias sitrad4\.13=/d' "$BASHRC"
     echo "$alias_cmd" >> "$BASHRC"
     eval "$alias_cmd"
@@ -97,7 +98,7 @@ launch_sitrad() {
     pkill -f "$EXE_PATH" || true
     sleep 1
     pushd "$EXE_DIR" >/dev/null
-    wine "./$EXE_NAME" &
+    $EMULATOR_PREFIX "./$EXE_NAME" &
     WINE_PID=$!
     popd >/dev/null
 }
