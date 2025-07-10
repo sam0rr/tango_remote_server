@@ -1,9 +1,9 @@
 
-# Step 2 — Install Wine 32-bit & Sitrad 4.13
+# Step 2 — Install Wine (Hangover) & Sitrad 4.13
 
 ---
 
-## 2.1 Install Wine via Pi-Apps
+## 2.1 Install Hangover via Pi-Apps
 
 ```bash
 # Clone and install Pi-Apps
@@ -16,11 +16,15 @@ pi-apps
 ```
 
 Once open:
-1. Select Tools
+
+1. Select Tools 
 2. Select Emulation
 3. Select Hangover
-4. Select install
+4. Select install 
 5. Wait for installation
+
+**Why Hangover?**
+Hangover runs Win64 and Win32 applications on arm64 Linux. Only the application is emulated instead of a whole Wine installation, providing better resource efficiency with less CPU and memory usage than full Wine-through-Box64 setups.
 
 ---
 
@@ -36,6 +40,6 @@ wine ~/tango_remote_server/assets/SetupLocal.exe
 
 ---
 
-Continue with **[Step 3 — Install Services & Deploy](install_services.md)**.
+Continue with **[Step 3 — Install Services & Deploy](install_services.md)**.
 
 ---
