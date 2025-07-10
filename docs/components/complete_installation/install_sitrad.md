@@ -35,7 +35,7 @@ Hangover runs Win64 and Win32 applications on arm64 Linux. Only the application 
 wineserver -k
 
 # Run the Sitrad installer and follow steps
-wine ~/tango_remote_server/assets/SetupLocal.exe
+HODLL=libwow64fex.dll wine ~/tango_remote_server/assets/SetupLocal.exe
 ```
 
 ---
