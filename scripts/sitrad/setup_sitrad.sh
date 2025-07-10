@@ -118,9 +118,10 @@ wait_for_sitrad_window() {
 # ── Send Ctrl+L and wait for FTDI device (single shot) ────────────────────────
 send_ctrl_l_and_wait_port() {
     local wid=$1
+    local sleep=60
 
-    log "Window $wid detected — waiting 90 s before Ctrl+L"
-    sleep 90
+    log "Window $wid detected — waiting $sleep s before Ctrl+L"
+    sleep $sleep
 
     log "Sending Ctrl+L"
     if "$BASEDIR/send_ctrl_l_to_sitrad.sh" "$wid"; then
@@ -131,11 +132,11 @@ send_ctrl_l_and_wait_port() {
         return
     fi
 
-    log "Waiting up to 60 s for $FTDI_DEVICE to open"
-    if timeout 60 bash -c "while ! fuser \"$FTDI_DEVICE\" &>/dev/null; do sleep 1; done"; then
+    log "Waiting up to $sleep s for $FTDI_DEVICE to open"
+    if timeout $sleep bash -c "while ! fuser \"$FTDI_DEVICE\" &>/dev/null; do sleep 1; done"; then
         log "Device $FTDI_DEVICE opened by Sitrad"
     else
-        log "Device $FTDI_DEVICE did not open within 60s - aborting and killing Wine"
+        log "Device $FTDI_DEVICE did not open within $sleep s - aborting and killing Wine"
         wineserver -k || true
         return
     fi
