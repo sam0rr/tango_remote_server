@@ -27,7 +27,7 @@ curl -sSL https://raw.githubusercontent.com/sam0rr/hangover-wine-easy-download/m
 wineserver -k
 
 # Run the Sitrad installer and follow steps
-HODLL=libwow64fex.dll wine ~/tango_remote_server/assets/SetupLocal.exe
+wine ~/tango_remote_server/assets/SetupLocal.exe
 ```
 
 ---
