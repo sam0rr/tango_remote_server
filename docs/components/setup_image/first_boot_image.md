@@ -80,6 +80,6 @@ sudo reboot
 
 ---
 
-## Return to [Complete Guide](/docs/base_guide.md).
+Return to **[Complete Guide](/docs/base_guide.md)**.
 
 ---
