@@ -6,7 +6,7 @@
 
 ---
 
-This repository turns a Linux ARM64 box (Radxa zero 3W, etc.) into a self-contained server that :
+This repository turns a Linux ARM64 box (Radxa zero 3, Orange pi zero 2w, bananapi m4 zero, etc.) into a self-contained server that :
 
 1. **Runs Sitrad 4.13** under Wine (Hangover more performant) – completely head-less, thanks to a **dummy Xorg server**.
 2. **Harvests telemetry** from the SQLite database Sitrad produces.
