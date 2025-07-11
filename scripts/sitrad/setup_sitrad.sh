@@ -7,8 +7,8 @@ trap 'error_handler "$LINENO" "$BASH_COMMAND"' ERR
 # • Waits for Xorg (dummy) session started via display.service
 # • Detects FTDI adapter and maps to Wine COM1 via registry (reg)
 # • Cleans old dosdevices links
-# • Adds alias sitrad4.13 to .bashrc (FEX usage)
-# • Launches SitradLocal.exe under Wine (Hangover and FEX emulator)
+# • Adds alias sitrad4.13 to .bashrc (BOX64 usage)
+# • Launches SitradLocal.exe under Wine (Hangover and BOX64 emulator)
 # • Sends Ctrl+L via send_ctrl_l_to_sitrad.sh (waiting the port or restart)
 ###############################################################################
 
@@ -20,7 +20,7 @@ BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ── Wine paths ────────────────────────────────────────────────────────────────
 EXE_DIR="$HOME/.wine/drive_c/Program Files (x86)/Full Gauge/Sitrad"
 EXE_NAME="SitradLocal.exe"
-EMULATOR_CMD="env HODLL=libwow64fex.dll wine"
+EMULATOR_CMD="wine"
 EXE_PATH="$EXE_DIR/$EXE_NAME"
 DOS_DIR="$HOME/.wine/dosdevices"
 BASHRC="$HOME/.bashrc"
