@@ -6,7 +6,6 @@
 ## 2.1 Install Hangover via Direct Script
 
 ```bash
-# Install Hangover with one command
 curl -sSL https://raw.githubusercontent.com/sam0rr/hangover-wine-easy-download/main/install-hangover.sh | bash
 ```
 
