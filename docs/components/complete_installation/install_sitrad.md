@@ -3,28 +3,20 @@
 
 ---
 
-## 2.1 Install Hangover via Pi-Apps
+## 2.1 Install Hangover via Direct Script
 
 ```bash
-# Clone and install Pi-Apps
-cd
-git clone https://github.com/Botspot/pi-apps ~/pi-apps
-~/pi-apps/install
-
-# Launch the GUI, then choose:
-pi-apps
+# Install Hangover with one command
+curl -sSL https://raw.githubusercontent.com/sam0rr/hangover-wine-easy-download/main/install-hangover.sh | bash
 ```
 
-Once open:
+**To uninstall Hangover later if needed:**
 
-1. Select Tools 
-2. Select Emulation
-3. Select Hangover
-4. Select install 
-5. Wait for installation
+```bash
+curl -sSL https://raw.githubusercontent.com/sam0rr/hangover-wine-easy-download/main/uninstall-hangover.sh | bash
+```
 
-**Why Hangover?**
-Hangover runs Win64 and Win32 applications on arm64 Linux. Only the application is emulated instead of a whole Wine installation, providing better resource efficiency with less CPU and memory usage than full Wine-through-Box64 setups.
+**Why Hangover?** Hangover runs Win64 and Win32 applications on arm64 Linux. Only the application is emulated instead of a whole Wine installation, providing better resource efficiency with less CPU and memory usage than full Wine-through-Box64 setups.
 
 ---
 
