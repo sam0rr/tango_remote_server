@@ -167,6 +167,9 @@ wait_for_sitrad_exit() {
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 main() {
+    log "Cleaning up any existing Wine processes…"
+    wineserver -k || true
+    sleep 1
     log "──────────────────────────────────────────────────────"
     log "Starting setup_sitrad.sh"
     check_dependencies
